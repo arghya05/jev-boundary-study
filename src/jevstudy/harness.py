@@ -110,10 +110,36 @@ PANELS = ["folio_final", "anli_final", "controlled_final", "judgebench_final", "
           "controlled_deep", "rewardbench", "halueval"]
 
 
+def escalation_ids(root: Path, panel: str, ids_file: str | None = None, threshold: float = THRESHOLD) -> list[str]:
+    """Items whose two-order System-1 confidence is below the threshold (model outputs only, never gold)."""
+    latest = {}
+    for f in sorted((root / "results" / "raw").glob("*.jsonl")):
+        for r in read_jsonl(f):
+            if r["system"] == "jev9b-s1" and r.get("mode") != "sync-latency":
+                latest[r["task_id"]] = r
+    keep = set(json.load(open(ids_file))["ids"]) if ids_file else None
+    out = []
+    for t in read_jsonl(root / "data" / "panels" / f"{panel}.tasks.jsonl"):
+        if keep is not None and t["task_id"] not in keep:
+            continue
+        res = combine(latest.get(t["task_id"]), latest.get(t["task_id"] + "-rev"), None, len(t["choices"]), 0.0, threshold)
+        if res["route"] != "s1":
+            out.append(t["task_id"])
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default=".")
+    ap.add_argument("--escalated", help="panel name: write manifests/escalated_<panel>.json instead of building")
+    ap.add_argument("--ids", help="restrict --escalated to an ids manifest")
     a = ap.parse_args()
+    if a.escalated:
+        ids = escalation_ids(Path(a.root), a.escalated, a.ids)
+        json.dump({"ids": ids, "rule": f"two-order S1 confidence < {THRESHOLD}"},
+                  open(Path(a.root) / "manifests" / f"escalated_{a.escalated}.json", "w"))
+        print(a.escalated, "escalated", len(ids))
+        return
     p = build(Path(a.root), PANELS)
     rows = read_jsonl(p)
     routes = defaultdict(int)
