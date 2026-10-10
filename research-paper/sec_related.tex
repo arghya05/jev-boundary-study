@@ -4,7 +4,7 @@
 \paragraph{One-pass decision models.}
 TypeSafe Jev answers typed questions---yes/no, choice among up to sixteen options, or a 0--5 score---in a single forward pass and returns a calibrated distribution.
 The original benchmark paper~\citep{jevbench2026} profiles its accuracy, contamination and throughput against open models whose thinking is disabled, and notes weak spots on tasks that need ``several steps''.
-JEV-as-a-Judge~\citep{jevjudge2026} studies Jev as an evaluator against frontier judges, including GPT-6 Astra at low reasoning effort, and finds its largest gap in the reasoning category of JudgeBench; it proposes confidence-based escalation with a task-level guidance table.
+JEV-as-a-Judge~\citep{jevjudge2026} studies official Jev as an evaluator: it judges each pair in both orders and averages the aligned probabilities, accepts confident verdicts and escalates the rest to GPT-6 Astra at low reasoning effort; on held-out RewardBench pairs this cascade scores 93.7\% against GPT-6's 92.4\% at 27\% of its fee, and the largest single-pass gap is in JudgeBench's reasoning category.
 jev-frontier-100~\citep{jevfrontier100} shows on 100 hand-built items that a small open model with a 2{,}048-token thinking budget overtakes Jev, and that the thinking budget moves accuracy strongly.
 Further work examines adversarial robustness and batching~\citep{jevadvbench2026}, probability coherence and interface-dependent decision loss~\citep{probcontracts2026,addup2026,beyondcal2026}, externalising computation to code~\citep{codeownssim2026}, and the observation that cheaper models fail on the same items as expensive ones, which limits escalation~\citep{samewrong2026}.
 General Decision Models~\citep{gdm2026} compare 25 decision-model configurations with non-thinking frontier models and conclude that reasoning-intensive tasks are ``not well captured by single-pass distillation''; LLM-as-Jev~\citep{llmasjev2026} shows that general LLMs can be read out as Jev-style decision models and that short training inputs hurt long-input accuracy; Jeeves-9B~\citep{jeeves2026} reports that a decision model which reasons before choosing gains about 3.6 points.
@@ -17,13 +17,18 @@ We use autotrust/JEV-9B~\citep{jev9bcard} (Qwen3.5-9B, a 40.2M-parameter LoRA an
 Depth control is not new: RuleTaker, ProofWriter, PrOntoQA and its distractor variant, LogicBench, Multi-LogiEval, QMFOL and ProloNg stratify deduction by depth~\citep{ruletaker2020,proofwriter2021,prontoqa2023,prontoqaood2023,logicbench2024,multilogieval2024,qmfol2026,prolong2026}.
 Closest to us, Hard-Decisions~\citep{harddecisions2026} evaluates official Jev on 3{,}600 ProofWriter items: open-world accuracy falls from 97.7\% at depth 0 to 81.0\% at depth 5, against 93.3\% to 46.0\% for GPT-6 Luna with reasoning \emph{off}; length and rule counts covary with depth there.
 
+\paragraph{LLM judges: bias, reasoning and escalation.}
+LLM judges are position- and verbosity-biased~\citep{mtbench2023,fairevaluators2024,judgingjudges2025}; evaluating both orders and averaging is the standard correction~\citep{fairevaluators2024}.
+Reasoning helps judges on verification-heavy pairs~\citep{explicitreasoningjudges2025}, and RACER~\citep{racer2026} routes between reasoning and non-reasoning judges under a budget; selective, confidence-gated escalation of judgements to a stronger judge is established~\citep{trustorescalate2025,askstrongjudge2025}, as is gating chain-of-thought on a model's own direct-answer confidence~\citep{confgatedcot2025}.
+Our harness (Section~\ref{sec:harness-results}) combines these established pieces; what differs is the escalation target---the decision model's own reasoning mode on the same GPU, with no paid API---and the high-effort frontier comparators.
+
 \paragraph{Routing and cascades.}
-Learned routing~\citep{routellm2024,routereval2025,routerarena2025,rerouting2025}, cost-aware cascades~\citep{frugalgpt2023,tokencascade2024} and confidence tuning~\citep{gatekeeper2025} are established, and confidence-based deferral is a notoriously strong baseline for classification cascades.
+Learned routing~\citep{routellm2024,routereval2025,routerarena2025,rerouting2025}, cost-aware cascades~\citep{frugalgpt2023,tokencascade2024} and confidence tuning~\citep{gatekeeper2025} are established, and confidence-based deferral is a strong baseline for cascades~\citep{cascadedeferral2023}.
 A routing contribution must therefore beat a small-model confidence gate, not only length or task-family lookups.
 
 \paragraph{Research position.}
 Table~\ref{tab:position} lists what each line of work already establishes and where this study differs.
 We claim no novel generator, router or theorem.
-Our candidate addition is narrow: a \emph{paired} comparison of a one-forward-pass decision model against \emph{reasoning-enabled} frontier models, together with a same-weights reasoning arm, under \emph{jointly} matched depth, length, rule count and distractors, with seed-clustered uncertainty; and a held-out test of whether pre-call features can predict when the decision model suffices.
+Our candidate addition is narrow, and several components are individually established (above): a \emph{paired} comparison of a one-forward-pass decision model against \emph{reasoning-enabled} frontier models, together with a same-weights reasoning arm, under \emph{jointly} matched depth, length, rule count and distractors, with seed-clustered uncertainty; and a held-out test of whether pre-call features can predict when the decision model suffices.
 
 \fullonly{x_position}

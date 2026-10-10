@@ -29,7 +29,7 @@ Table~\ref{tab:panels} lists the panels and their independent sampling units.
 FOLIO~\citep{folio2024} is taken from the authors' repository at a pinned commit (the Hugging Face copy is gated); its 204 validation rows come from only 73 premise sets, which are the clusters for uncertainty.
 ANLI~\citep{anli2020} round-3 test rows are clustered by premise.
 JudgeBench~\citep{judgebench2025} rows are clustered by source question, which recurs across its GPT and Claude response splits.
-JudgeBench inputs routinely exceed the 1{,}024 tokens on which JEV-9B was trained; we do not truncate (length strata in Appendix~\ref{app:tables}). RewardBench and HaluEval-QA form the judge track (A3): human-verified pairs of chat responses and right-versus-hallucinated answers.
+JudgeBench inputs routinely exceed the 1{,}024 tokens on which JEV-9B was trained; we do not truncate (length strata in Appendix~\ref{app:tables}). RewardBench~\citep{rewardbench2024} and HaluEval-QA~\citep{halueval2023} form the judge track (A3): human-verified pairs of chat responses and right-versus-hallucinated answers.
 
 \fullonly{x_panels}
 

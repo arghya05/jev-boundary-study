@@ -81,17 +81,18 @@ We report HaluEval for completeness but draw no conclusion about hallucination d
 \label{sec:harness-results}
 \input{tables/harness}
 
-JEV-H (preregistration A4) asks System~1 in both option orders and escalates to System~2 when the averaged confidence is below 0.90; it has no fitted parameter.
+JEV-H (preregistration A4) asks System~1 in both option orders and escalates to System~2 when the averaged confidence is below 0.90; it is training-free, with its one threshold fixed a priori.
 Its escalation rate is itself informative: \EscHalueval\% of HaluEval, \EscRewardbench\% of RewardBench, \EscFolio\% of FOLIO, \EscAnli\% of ANLI and \EscJudgebench\% of JudgeBench items fall below the threshold, so the one-pass model is confident mostly where it is accurate.
 Table~\ref{tab:harness} compares the harness with each frontier in its own Bonferroni family of 12 comparisons.
 
-\textbf{On RewardBench the harness is the most accurate system we tested.}
+\textbf{On RewardBench the harness matches the frontier judges.}
 It is correct on \AccRbHarn\% of the 500 shared pairs, against \AccRbAstra\% for Astra ($\Delta=\DeltaHRbAstra$ [\LoHRbAstra, \HiHRbAstra]) and \AccRbFable\% for Fable ($\Delta=\DeltaHRbFable$ [\LoHRbFable, \HiHRbFable]).
 Under the preregistered scoring the frozen rule returns \emph{\ConclHRbFable} against Fable.
 That verdict needs one qualification, which we state as prominently as the result: all 25 of Fable's refusals are Safety pairs, scored as errors.
 On the 475 pairs Fable answered, JEV-H and Fable are statistically indistinguishable (\AccHRbFableAnsweredH\% vs.\ \AccHRbFableAnsweredF\%, $\Delta=\DeltaHRbFableAnswered$ [\LoHRbFableAnswered, \HiHRbFableAnswered]; a sensitivity analysis that was not preregistered).
 Against Astra the interval sits within $[-2.4, 3.6]$: the harness neither loses nor certifiably matches it under the two-point margin.
 It does this at \$\CostRbHarn{} per thousand judgements, against \$\CostRbAstra{} and \$\CostRbFable.
+This agrees with JEV-as-a-Judge~\citep{jevjudge2026}, whose both-order cascade from official Jev to low-effort GPT-6 Astra reaches 93.7\% on held-out RewardBench pairs; the difference here is that escalation stays on the same open model and GPU, so the marginal cost of an escalated item is GPU time rather than an API fee.
 
 On the reasoning panels the harness recovers most of the one-pass deficit.
 On ANLI it is \AccAnliHarn\% against Astra's \AccAnliAstra\% ($\Delta=\DeltaHAnliAstra$ [\LoHAnliAstra, \HiHAnliAstra]), up from System~1's \AccAnliSone\%; on FOLIO \AccFolioHarn\% against \AccFolioAstra\%; on the controlled panel \AccCtlHarn\%.
@@ -106,7 +107,7 @@ Its cost is \$\CostFolioHarn--\$\CostJbgptHarn{} per thousand items, 6--35 times
 
 \fullonly{x_routingres}
 \ifsubmission
-\paragraph{Selection rules (H3).} Under leave-one-family-out evaluation no pre-call rule reliably preserved frontier accuracy on held-out families; the JEV-9B confidence gate kept \RouteAstraGateAcc\% mean accuracy (always-Astra: \RouteAstraAfrAcc\%) at \RouteAstraGateCost{} of the cost, and adding surface features helped little (Appendix~\ref{app:additional}). H3 is only partly supported.
+\paragraph{Selection rules (H3).} Under leave-one-family-out evaluation no pre-call rule reliably preserved frontier accuracy on held-out families; the JEV-9B confidence gate kept \RouteAstraGateAcc\% mean accuracy (always-Astra: \RouteAstraAfrAcc\%) at \RouteAstraGateCost{} of the cost, and adding surface features helped little (Appendix~\ref{app:additional}). H3 is only partly supported, consistent with the known strength of confidence-based deferral~\citep{cascadedeferral2023}.
 \fi
 
 \subsection{Bridge to official Jev}

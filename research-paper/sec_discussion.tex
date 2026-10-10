@@ -11,7 +11,7 @@ And it is 25--290 times cheaper on every panel (25--38$\times$ on the judge trac
 Most comparisons between decision models and frontier models confound three things: one forward pass versus reasoning, a 9B backbone versus a frontier one, and different training data.
 Holding the weights fixed removes the second and third.
 JEV-9B's backbone, allowed to think, matches GPT-6 Astra on FOLIO and solves the controlled panel; allowed one pass, it does neither.
-For practitioners this suggests a cheaper escalation target than a frontier API---the model's own reasoning mode on the same GPU---and JEV-H shows it works: escalating the 38--91\% of items on which the one-pass model is unsure lifts RewardBench to \AccRbHarn\% and ANLI to \AccAnliHarn\%, at 6--35 times lower cost than a frontier judge.
+For practitioners this suggests a cheaper escalation target than a frontier API---the model's own reasoning mode on the same GPU---and JEV-H shows it works (RACER~\citep{racer2026} routes between reasoning and non-reasoning judges in a related way): escalating the 38--91\% of items on which the one-pass model is unsure lifts RewardBench to \AccRbHarn\% and ANLI to \AccAnliHarn\%, at 6--35 times lower cost than a frontier judge.
 
 \fullonly{x_whydepth}
 

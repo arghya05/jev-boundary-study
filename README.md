@@ -21,7 +21,7 @@ JEV-H = our harness (two option orders, escalate below 0.90 confidence to JEV-9B
 
 | Question | Benchmark | JEV-9B / JEV-H | Frontier | Verdict |
 |---|---|---|---|---|
-| Pairwise judging of chat responses | RewardBench, 500 sealed pairs | JEV-H **94.4%** at $0.65 / 1k | Astra 93.8% ($4.01), Fable 90.2% ($5.78) | **JEV-H best measured**; ahead of Fable (+4.2 [+0.4, +8.2]) only because Fable refuses 25 Safety pairs — tied without them (94.1 vs 94.9); tied with Astra |
+| Pairwise judging of chat responses | RewardBench, 500 sealed pairs | JEV-H **94.4%** at $0.65 / 1k | Astra 93.8% ($4.01), Fable 90.2% ($5.78) | **Statistically tied with Astra** at ~6× lower cost; ahead of Fable (+4.2 [+0.4, +8.2]) only because Fable refuses 25 Safety pairs (tied without them). Consistent with JEV-as-a-Judge's paid cascade (93.7%), here with no API fee |
 | One-pass judging, no escalation | RewardBench | JEV-9B 87.0% at $0.17 / 1k | Fable 90.2% | Within 1.8 points of Fable [−6.4, +2.6], ~34× cheaper; inconclusive |
 | Hard correctness judging | JudgeBench (partial, 349 rows) | JEV-9B 68.2%, JEV-H 88.2% | ~94% | **Frontier better** |
 | Hallucination detection | HaluEval-QA, 1,000 | JEV-9B 82.7%, JEV-H 87.7% | 90.6–93.3% | Frontier better — and answer **length alone** scores AUROC 0.976 here |
@@ -70,6 +70,14 @@ jev-judge custom --tasks my_labelled_tasks.jsonl --systems jev-s1,astra --stage-
 It reports accuracy and cost for each system, the paired difference with a 95% interval, a frozen verdict
 (more accurate / comparable and cheaper / frontier better / inconclusive) and the accuracy-vs-escalation
 curve for choosing a threshold. See the [startup guide](docs/STARTUP_GUIDE.md).
+
+## Relation to prior work
+
+Both-order averaging and confidence-gated escalation for Jev-style judges were introduced by
+[JEV-as-a-Judge](https://arxiv.org/abs/2609.26550) (with a paid GPT-6 fallback), and routing between reasoning and
+non-reasoning judges by [RACER](https://arxiv.org/abs/2605.10805). jev-judge's harness combines these; what it changes is the
+escalation target (the same open model's reasoning mode, on your own GPU) and the evidence (high-effort frontier baselines,
+preregistration, paired intervals, measured cost). See [the literature review](research/LITERATURE_REVIEW_2026-10.md).
 
 ## When to use it — and when not to
 
