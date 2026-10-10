@@ -1,0 +1,84 @@
+\section{Preregistration, Amendments and Deviations}
+\label{app:prereg}
+The full preregistration is \texttt{research/PREREGISTRATION.md} in the repository.
+It was committed publicly (commit \texttt{9908524}) after the 24-item development pilot and the 48-item controlled development panel, and before any final-panel call.
+Amendments A1 (deep controlled extension) and A2 (ProofWriter bridge) were committed (\texttt{88a8eff}) while final runs were in progress and before any final-panel outcome was analysed; both are exploratory.
+Deviations from the original plan, all declared before final calls:
+(1) official Jev was replaced by the community distillation JEV-9B because no official access existed;
+(2) Banking77 was presented with sixteen candidates and made secondary;
+(3) JudgeBench was made secondary because its inputs exceed JEV-9B's training length;
+(4) the evidence-sufficiency factor (G02) was made exploratory;
+(5) blinded human review of controlled items was replaced by automated round-trip parsing and two independent reference scorers;
+(6) accuracy runs used synchronous calls, with batch prices reported as a derived view;
+(7) the same-weights System~2 arm was added.
+
+\paragraph{Operational incident.}
+During the pilot a code-synchronisation command deleted the raw result files and the spend ledger on the pod.
+Every completed, non-error response had been cached with its usage and cost, so the results and ledger were rebuilt from the cache (\texttt{jevstudy restore}); panels were regenerated, and all seven panel task-hash digests matched the originals exactly.
+No paid call was repeated; the only response not recoverable was a \$0 credit-balance error from the first Fable call.
+The development-ID seal is the committed seed and code (\texttt{248d223}), which predates every model call.
+
+\section{Prompts and Request Wrappers}
+\label{app:prompts}
+\paragraph{Canonical text (frontier models).} For controlled item \texttt{ctl-424242-d1-c0} (gold: True, depth 1):
+\begin{quote}\footnotesize\ttfamily
+Task: Decide whether the statement follows from the facts and rules, using only the facts and rules. Choose True if they entail the statement, False if they entail its negation, and Unknown if neither follows.\\[3pt]
+Evidence:\\
+Facts and rules:\\
+1. If someone is not ulvarn, then they are not zelvic.\\
+2. If someone is not sombic, then they are narlin.\\
+3. If someone is not delmor, then they are not tembic.\\
+4. If someone is gostal, then they are not brelic.\\
+5. If someone is gremal, then they are fenric.\\
+6. If someone is not brelic, then they are not rustal.\\
+7. Perry is mavric.\\
+8. Perry is not vexlan.\\
+9. If someone is not vexlan, then they are tembic.\\
+10. If someone is not nostel, then they are welbic.\\[3pt]
+Question: Statement: Perry is tembic. Is the statement True, False, or Unknown?\\[3pt]
+Choices:\\
+A) True\\
+B) False\\
+C) Unknown\\[3pt]
+Select the correct choice using the supplied information and task definition. Return the final choice identifier.
+\end{quote}
+Rule 3 is the distractor chain that ends at the target predicate with the opposite sign; it does not fire because Perry's \textit{delmor} status is never established.
+
+\paragraph{JEV-9B System~1.} The same instructions and evidence form the \texttt{[state]}; the request is a single-token completion constrained to the option verbalisers:
+\begin{quote}\footnotesize\ttfamily
+[kind] choice\\
+[state] Task: Decide whether \ldots{} (identical instructions and evidence)\\
+[question] Statement: Perry is tembic. Is the statement True, False, or Unknown?\\
+[options]\\
+A) True\\ B) False\\ C) Unknown\\
+[decision]:
+\end{quote}
+
+\paragraph{Wrappers.}
+OpenAI: \texttt{responses.create(model="gpt-6-astra", input=<canonical text>, reasoning=\{"effort":"high"\}, max\_output\_tokens=32000, text=\{"format":\{"type":"json\_schema","strict":true,"schema":\{answer: enum[A..]\}\}\}, store=false)}.
+Anthropic: \texttt{messages.create(model="claude-fable-5-1", max\_tokens=32000, messages=[\{"role":"user","content":<canonical text>\}], output\_config=\{"effort":"high","format":\{"type":"json\_schema","schema":\{answer: enum[A..]\}\}\})}.
+JEV-9B System~2: \texttt{chat.completions} on the base model with \texttt{enable\_thinking=true}, the canonical text plus the line \texttt{Respond with JSON \{"answer": "<choice identifier>"\}.}
+
+\section{Controlled Generator Details}
+\label{app:generator}
+\paragraph{Vocabulary.} Forty invented six-letter predicates (\textit{dravic, florin, gremal, \ldots}) and twenty five-letter names.
+\paragraph{Templates.} T1: ``\{E\} is (not) \{a\}.'' / ``If someone is (not) \{b\}, then they are (not) \{h\}.'' T2 (unseen, half of held-out seeds): ``It is known that \{E\} is (not) \{a\}.'' / ``Everyone who is (not) \{b\} is also (not) \{h\}.''
+\paragraph{Examples.} The same seed at depth 5 (gold True) chains \textit{not vexlan} $\to$ \textit{delmor} $\to$ \textit{ulvarn} $\to$ \textit{not zelvic} $\to$ \textit{not gremal} $\to$ \textit{tembic} through rules 7, 2, 6, 4 and 3, while rule 5 (\textit{fenric} $\to$ \textit{not tembic}) is the opposite-sign distractor; the evidence has ten numbered lines, as at depth 1.
+The decision-changing control for this seed flips the sign of the final chain rule, so the gold label becomes False.
+\paragraph{Validation.} For all 416 held-out items and 72 deep-extension items, the brute-force classical scorer and forward chaining agree, measured derivation depth equals designed depth, every grounding is consistent, and every sentence parses back to its formula.
+
+\section{Reproducibility}
+\label{app:repro}
+Everything needed to reproduce the study is in the public repository: the package (\texttt{src/jevstudy}), tests (22 tests covering gold exclusion, prompt parity, cache keys, cost accounting, retries, scorer agreement and interval behaviour), pinned panel builders, manifests (dataset sources with SHA-256, model revisions, rate card, development IDs, latency subset), the preregistration, and RunPod scripts.
+\begin{quote}\footnotesize\ttfamily
+runpod/pod.sh create \&\& runpod/pod.sh sync \&\& runpod/pod.sh secrets\\
+runpod/pod.sh ssh 'bash /workspace/jev/runpod/setup\_remote.sh \&\& bash /workspace/jev/runpod/start\_vllm.sh'\\
+jevstudy prepare; jevstudy variants; jevstudy amendments\\
+bash runpod/full\_run.sh\\
+python -m jevstudy.paper\_assets --root . --out paper
+\end{quote}
+Raw dataset text is not redistributed; the builders download it from pinned sources.
+Item-level predictions (task IDs, answers, correctness, usage and cost) are released in \texttt{results/final\_item\_level.csv}.
+
+\input{tables/routing_detail}
+\input{tables/cost_ledger}
