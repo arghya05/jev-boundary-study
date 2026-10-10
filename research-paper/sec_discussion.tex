@@ -1,0 +1,56 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\paragraph{When can a decision model replace a reasoning LLM?}
+Table~\ref{tab:scorecard} collects the verdicts.
+On the evidence here, JEV-9B is not a replacement for a frontier model on tasks whose answer must be \emph{derived}: natural-language deduction, adversarial inference and hard correctness judgements all show materially lower accuracy, and the controlled panel shows that the failure is present even when the derivation is a single rule.
+It is closest to a replacement where the judgement is \emph{recognitional}---whether a chat response is the helpful one, whether a response appropriately handles a harmful request---as on RewardBench's Chat and Safety sections.
+And it is 25--290 times cheaper on every panel (25--38$\times$ on the judge track, where frontier calls are shortest), with a calibrated probability that a deployment can threshold.
+
+\paragraph{What the same-weights arm adds.}
+Most comparisons between decision models and frontier models confound three things: one forward pass versus reasoning, a 9B backbone versus a frontier one, and different training data.
+Holding the weights fixed removes the second and third.
+JEV-9B's backbone, allowed to think, matches GPT-6 Astra on FOLIO and solves the controlled panel; allowed one pass, it does neither.
+For practitioners this suggests a cheaper escalation target than a frontier API---the model's own reasoning mode on the same GPU---which is what JEV-H uses.
+
+\paragraph{Why depth did not matter.}
+We expected the one-pass model to degrade with each additional dependent step, as models without reasoning do on ProofWriter~\citep{harddecisions2026}.
+On our fragment, it was already far from ceiling at depth one, and its errors were dominated by a reluctance to answer \emph{Unknown} and by instability under renaming and reordering.
+One reading is that a one-pass reader of an unfamiliar formal fragment does not follow rule chains at all, so their length is irrelevant; on ProofWriter, whose natural vocabulary it saw in distillation, depth does matter (Table~\ref{tab:bridge}).
+A depth effect may therefore require familiarity with the surface form before it can appear.
+
+\paragraph{Cost, measured.}
+At high effort both frontier models reasoned briefly---tens to a few hundred output tokens per item---so the frontier cost per decision was \$0.002--0.04, far below the planning estimates.
+The economic case for a decision model is thus not that frontier reasoning is unaffordable, but that it is 25--290 times more expensive per decision, which matters at evaluation volume.
+The whole study, including every API call, cost \$\ApiTotal{} in API fees plus a single rented GPU.
+
+\begin{table}[t]
+\centering\small
+\caption{Scorecard. Each verdict follows the frozen rule against both frontiers unless stated; ``cost'' compares measured cost per 1{,}000 decisions.}
+\label{tab:scorecard}
+\begin{tabularx}{\linewidth}{@{}lXl@{}}
+\toprule
+Question & Evidence & Verdict \\
+\midrule
+Replace frontier on deduction / NLI? & FOLIO, ANLI: $-11$ to $-21$ points & No \\
+Replace frontier as a pairwise judge? & RewardBench: $\DeltaRbFable$ vs.\ Fable [\LoRbFable, \HiRbFable], $\DeltaRbAstra$ vs.\ Astra & Inconclusive / close \\
+Replace frontier on hard correctness judging? & JudgeBench: $\approx -26$ points & No \\
+Cheaper and faster? & 25--290$\times$ cheaper on every panel & Yes \\
+Does depth drive the one-pass deficit (H1)? & DID depth 5 vs.\ 1: \DidAstraDfive{} [\DidLoAstraDfive, \DidHiAstraDfive] & Not supported \\
+Is it computation, not knowledge (H1c)? & Same weights with thinking: FOLIO \AccFolioStwo\%, controlled 100\% & Supported \\
+Can features predict sufficiency (H3)? & Within 2 pt of frontier on \RouteAstraRuleconfWithin{} held-out folds & Partly \\
+Do results transfer to official Jev? & ProofWriter depth 5: \BridgeDFive\% vs.\ 81.0\% & No (student $\neq$ teacher) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\input{sec_threats}
+
+\subsection{Limitations}
+The decision model is a community student, not TypeSafe Jev; two frontier configurations at one effort level represent the frontier; the controlled fragment is narrow; human review of generated items was replaced by automated checks; budget constraints reduced RewardBench to a 500-pair sample, left JudgeBench partial and removed the max-effort and frontier option-reversal ablations; and HaluEval-QA is solvable by length alone, so it cannot discriminate between judges.
+The selection rule was trained on five families; a deployment-grade router needs data from the deployment.
+
+\section{Conclusion}
+A one-pass decision model is an excellent default for cheap, calibrated, recognitional judgements and a poor substitute for reasoning, and the deficit lives in the computation rather than in the weights: the same weights that fail in one pass succeed when they think.
+For evaluation pipelines, that suggests a simple architecture---decision model first, its own reasoning mode or a frontier model only when it is unsure---and a simple discipline: measure, on your own labelled data and with paired intervals, whether the cheap path is good enough before trusting it.
+The code, preregistration, item-level predictions and a self-hostable judging API are released at \url{https://github.com/arghya05/jev-boundary-study}.

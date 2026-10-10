@@ -1,0 +1,116 @@
+\section{Results}
+\label{sec:results}
+
+Table~\ref{tab:main} reports every panel; Table~\ref{tab:paired} the frozen paired comparisons; Figure~\ref{fig:op} the accuracy--cost operating points.
+All frontier calls completed without failures except 25 Claude refusals on RewardBench, which are scored incorrect.
+Total API spend for the whole study, including development, probes and ablations, was \$\ApiTotal.
+
+\input{tables/main}
+\input{tables/paired}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/operating_points.pdf}
+\caption{Accuracy (95\% Wilson interval) against cost per 1{,}000 decisions (log scale). Circles: measured synchronous list price; crosses: the same frontier usage at batch prices. JEV-9B sits 25--290 times to the left of both frontiers.}
+\label{fig:op}
+\end{figure}
+
+\subsection{Public reasoning panels: the frontiers are materially more accurate}
+\label{sec:public}
+On both primary panels the frozen rule returns \emph{frontier materially more accurate} against both providers (Table~\ref{tab:paired}).
+On FOLIO, JEV-9B System~1 is correct on \AccFolioSone\% of items against \AccFolioAstra\% for Astra and \AccFolioFable\% for Fable ($\Delta=\DeltaFolioAstra$ and $\DeltaFolioFable$ points; adjusted upper bounds \HiFolioAstra{} and \HiFolioFable{}).
+On ANLI round 3 the gaps are \DeltaAnliAstra{} and \DeltaAnliFable{} points, with upper bounds of \HiAnliAstra{} and \HiAnliFable{}: even the most favourable end of each interval is far outside the two-point margin.
+The cost difference runs the other way by a similar order: \$\CostFolioSone{} per thousand FOLIO decisions for JEV-9B against \$\CostFolioAstra{} and \$\CostFolioFable{} for the frontiers.
+Neither frontier was close to its output budget: mean output, including reasoning, was 49--137 tokens per item at \texttt{high} effort.
+
+\paragraph{The same weights, thinking, close most of the gap.}
+JEV-9B System~2---the identical backbone with its reasoning enabled---reaches \AccFolioStwo\% on FOLIO, within a point of Astra (\AccFolioAstra\%), at \$\CostFolioStwo{} per thousand decisions (Table~\ref{tab:main}).
+The deficit of the one-pass decision path is therefore not a deficit of the backbone's knowledge: the information needed is in the weights, and a single forward pass does not extract it.
+
+\subsection{The controlled panel: not depth, but the absence of a derivation}
+\label{sec:controlled-results}
+\input{tables/controlled_cells}
+\input{tables/did}
+\input{tables/controls}
+
+Every reasoning system---both frontiers and JEV-9B System~2---answers all 288 base items correctly at every depth and context (Table~\ref{tab:cells}); the fragment is easy for any system that reasons.
+JEV-9B System~1 is correct on \AccCtlSone\%.
+Our primary hypothesis H1 predicted that this deficit would grow with dependency depth.
+\textbf{It did not, at our precision.}
+Moving from depth~1 to depth~5 changes System~1 accuracy by \ChgAstraDfive{} points, a difference-in-differences of \DidAstraDfive{} against either frontier with an adjusted interval of [\DidLoAstraDfive, \DidHiAstraDfive] (Table~\ref{tab:did}); depth~3 gives \DidAstraDthree{} [\DidLoAstraDthree, \DidHiAstraDthree].
+Neither interval excludes zero, so H1 is not supported; with 48 seeds we cannot exclude a moderate depth effect either.
+The eight irrelevant facts, which add about 250 characters, move accuracy by \DidAstraCtx{} points [\DidLoAstraCtx, \DidHiAstraCtx]---a larger point estimate than depth, contrary to H1b, though its interval also touches zero.
+
+The structure of the errors is clearer than their dependence on depth.
+By gold label (Table~\ref{tab:cells}, right), System~1 is correct on most \emph{False} items and on a majority of \emph{True} items, but on only a quarter of \emph{Unknown} items: it rarely concludes that nothing follows.
+Its predictions are also unstable under edits that should not matter: renaming entities and reordering premises preserves its answer on only \CtlSoneInvariant\% of seeds, against 100\% for every reasoning system (Table~\ref{tab:controls}).
+And under an edit that flips the verified label, it changes its answer on \CtlSoneAnswerChanged\% of seeds and is right on both the original and the edited item on only \CtlSoneBothCorrect\%.
+Together these say that, on this fragment, the one-pass model is not tracking the derivation at all: it reads surface cues, and the cue it most lacks is the one for ``no rule applies''.
+
+The deep extension (A1; 12 rules, depths 1/5/9, exploratory) shows the same picture with more room: System~1 scores \DeepSoneDOne\%, \DeepSoneDFive\% and \DeepSoneDNine\% at depths 1, 5 and 9, System~2 \DeepStwoDOne\%, \DeepStwoDFive\% and \DeepStwoDNine\%, and both frontiers 100\% throughout (Figure~\ref{fig:depth}).
+Even at nine dependent steps the frontier models do not drop an item; whatever their depth limit is, it lies beyond what a 12-rule, sub-1{,}000-character problem can probe.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/depth.pdf}
+\caption{Accuracy by dependency depth with seed-clustered 95\% bootstrap intervals. Left: the preregistered controlled panel (8 rules, depths 1/3/5). Right: the exploratory deep extension (12 rules, depths 1/5/9). Dotted line: chance.}
+\label{fig:depth}
+\end{figure}
+
+\paragraph{Same weights, different computation (H1c).}
+Against its own System~2, System~1's depth-3-versus-depth-1 difference-in-differences is \DidStwoDthree{} points [\DidLoStwoDthree, \DidHiStwoDthree] and depth-5-versus-1 is \DidStwoDfive{} [\DidLoStwoDfive, \DidHiStwoDfive].
+Because System~2 is flat at 100\%, these contrasts mostly restate System~1's own variation; the more informative statement is the level: identical weights solve every controlled item when allowed to reason, and solve \AccCtlSone\% when not.
+
+\subsection{Judging LLM outputs}
+\label{sec:judging}
+\input{tables/judgetrack}
+
+The judge track asks whether JEV-9B can replace a frontier LLM-as-a-judge.
+\textbf{On RewardBench it is the closest to parity of any panel.}
+One-pass JEV-9B is correct on \AccRbSone\% of all 2{,}985 filtered pairs; on the sealed 500-pair sample shared with the frontiers it trails Astra by \DeltaRbAstra{} points [\LoRbAstra, \HiRbAstra] and Fable by only \DeltaRbFable{} points [\LoRbFable, \HiRbFable] (Table~\ref{tab:paired}).
+Against Fable the interval includes zero but not the full two-point margin, so the frozen rule returns \emph{inconclusive}: we can neither certify noninferiority nor show a difference.
+By section (Table~\ref{tab:judgetrack}), JEV-9B matches Fable on Chat (\RbSoneChat\% vs.\ \RbFableChat\%) and \emph{exceeds} it on Safety (\RbSoneSafety\% vs.\ \RbFableSafety\%), where Fable's refusals to adjudicate harmful prompts count against it; it is clearly weaker on Chat Hard (\RbSoneChatHard\% vs.\ \RbFableChatHard\%), the adversarial instruction-following pairs, and on Reasoning (\RbSoneReasoning\% vs.\ 100\%).
+It does this at \$\CostRbSone{} per thousand judgements, against \$\CostRbAstra{} and \$\CostRbFable.
+
+On JudgeBench---difficult, mostly long correctness judgements---the gap is large (\DeltaJbgptAstra{} and \DeltaJbgptFable{} points on the GPT-response split; the Claude split has too few completed rows to analyse, Appendix~\ref{app:prereg}).
+On HaluEval-QA JEV-9B detects hallucinated answers at \AccHaluSone\%, against \AccHaluAstra\% and \AccHaluFable\% (gaps \DeltaHaluAstra{} and \DeltaHaluFable).
+\emph{All three judges are below a trivial baseline here}: answer length alone separates right from hallucinated answers with AUROC \HaluLenAuroc, because HaluEval's hallucinated answers are systematically longer.
+We report HaluEval for completeness but draw no conclusion about hallucination detection from it.
+
+\input{tables/length}
+
+\subsection{The JEV-H harness}
+\label{sec:harness-results}
+\input{tables/harness}
+
+JEV-H (preregistration A4) asks System~1 in both option orders and escalates to System~2 when the averaged confidence is below 0.90.
+Its escalation rate is itself informative: \EscAnli\% of ANLI items, \EscJudgebench\% of JudgeBench, \EscRewardbench\% of RewardBench and \EscHalueval\% of HaluEval items fall below the threshold, so the one-pass model is confident precisely on the panels where it is accurate.
+Table~\ref{tab:harness} compares the harness with each frontier under its own Bonferroni family.
+
+\subsection{Robustness}
+\label{sec:robust}
+\input{tables/reversal}
+Reversing the option list changes System~1's answer on \FlipFolioSone\% of FOLIO items and \FlipCtlSone\% of controlled items (Table~\ref{tab:reversal}), well below the 11.5\% the model card reports for sixteen-option lists; on these three-option tasks position bias is not the main error source.
+The frontier arms of this ablation and the max-effort ablation were dropped to limit spending (A5).
+
+\subsection{Can pre-call features say when JEV-9B is enough?}
+\label{sec:routing-results}
+\input{tables/routing}
+Under leave-one-family-out evaluation (Table~\ref{tab:routing}), no rule reaches the always-frontier accuracy band on every held-out family.
+Against Astra, the JEV-9B confidence gate keeps \RouteAstraGateAcc\% mean held-out accuracy (always-Astra: \RouteAstraAfrAcc\%) at \RouteAstraGateCost{} of the cost, and is within two points of always-Astra on \RouteAstraGateWithin{} folds; the feature rule plus confidence reaches \RouteAstraRuleconfAcc\% at \RouteAstraRuleconfCost{} of the cost (\RouteAstraRuleconfWithin{} folds).
+Length-only and family-lookup rules degenerate to always-frontier on held-out families.
+H3 is therefore only partly supported: features add a little to the confidence gate, neither reliably preserves frontier accuracy on a family it was not fit on, and the oracle (\RouteAstraOracleAcc\% at \RouteAstraOracleCost{} of the cost) shows how much routing headroom remains.
+
+\subsection{Bridge to official Jev}
+\label{sec:bridge}
+\input{tables/bridge}
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.62\linewidth]{figures/bridge.pdf}
+\caption{ProofWriter open-world accuracy by proof depth: JEV-9B~S1 (this study, 900 items) against official Jev, Kev-9B and GPT-6 Luna without reasoning as published by Hard-Decisions on a different sample of the same strata.}
+\label{fig:bridge}
+\end{figure}
+On ProofWriter (A2, exploratory), JEV-9B falls from \BridgeDZero\% at depth~0 to \BridgeDFive\% at depth~5 (Table~\ref{tab:bridge}, Figure~\ref{fig:bridge}).
+Official Jev, on a different sample of the same strata, falls only to 81.0\%.
+At depth~0 the student is within four points of its teacher; from depth~2 on it tracks Kev-9B, a different 9B decision model, and not Jev.
+\textbf{This is the most important qualification of everything above}: the student's reasoning-depth behaviour is not the teacher's, so our negative results about JEV-9B on reasoning panels should not be read as results about official Jev.
