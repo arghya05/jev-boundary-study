@@ -113,13 +113,20 @@ def cmd_run(a):
         raise SystemExit(f"STOP: failure rate above 10% on {a.panel}: {fr}")
 
 
+def _select(tasks, a):
+    if a.ids:
+        keep = set(json.load(open(a.ids[1:]))["ids"]) if a.ids.startswith("@") else set(a.ids.split(","))
+        tasks = [t for t in tasks if t.task_id in keep]
+    return tasks[: a.limit] if a.limit else tasks
+
+
 def cmd_batch_submit(a):
-    tasks = load_tasks(PANELS / f"{a.panel}.tasks.jsonl")
+    tasks = _select(load_tasks(PANELS / f"{a.panel}.tasks.jsonl"), a)
     cache = Cache(RES / "cache")
     ledger = Ledger(RES / "budget_ledger.jsonl", a.stage_forecast)
     for ad in _adapters(a.systems.split(","), 0):
         todo = [t for t in tasks if not cache.get(ad.request_key(t))]
-        wd = RES / "batches" / a.panel / ad.system
+        wd = RES / "batches" / a.panel / (ad.system + (f"-{a.run_name}" if a.run_name != "main" else ""))
         if not todo:
             print(ad.system, "nothing to submit")
             continue
@@ -133,12 +140,13 @@ def cmd_batch_collect(a):
     cache = Cache(RES / "cache")
     ledger = Ledger(RES / "budget_ledger.jsonl")
     for ad in _adapters(a.systems.split(","), 0):
-        wd = RES / "batches" / a.panel / ad.system
+        wd = RES / "batches" / a.panel / (ad.system + (f"-{a.run_name}" if a.run_name != "main" else ""))
         for fn, idf in ((collect_openai_batch, "openai_batch_id.txt"), (collect_anthropic_batch, "anthropic_batch_id.txt")):
             p = wd / idf
             if p.exists() and not (wd / "collected").exists():
                 bid = p.read_text().strip()
-                st = fn(ad, bid, tasks, RES / "raw" / f"{a.panel}.batch.jsonl", ledger, cache)
+                sub_ids = set(json.loads((wd / "submitted_ids.json").read_text())) if (wd / "submitted_ids.json").exists() else set(tasks)
+                st = fn(ad, bid, {k: v for k, v in tasks.items() if k in sub_ids}, RES / "raw" / f"{a.panel}.batch.jsonl", ledger, cache)
                 print(ad.system, bid, st)
                 if st == "collected":
                     (wd / "collected").write_text(time.ctime())

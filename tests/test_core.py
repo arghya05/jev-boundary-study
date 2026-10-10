@@ -143,12 +143,13 @@ def test_retry_at_most_once_and_not_on_bad_request(monkeypatch):
 
 def test_ledger_reservation_and_forecast_stop(tmp_path):
     led = Ledger(tmp_path / "l.jsonl", stage_forecast_usd=1.0)
-    led.reserve("k", "s", 0.6)
-    led.settle("k", "s", 0.6, 0.1, {})
-    assert led.summary() == {"spent_usd": 0.1, "committed_usd": 0.0}
+    led.reserve("k", "astra-high", 0.6)
+    led.settle("k", "astra-high", 0.6, 0.1, {})
+    led.settle("g", "jev9b-s2", 0.0, 5.0, {})          # GPU allocation never trips the API forecast
+    assert led.summary() == {"api_spent_usd": 0.1, "committed_usd": 0.0}
     with pytest.raises(Exception):
-        led.reserve("k2", "s", 0.95)
-    assert Ledger(tmp_path / "l.jsonl").spent == pytest.approx(0.1)  # survives restart
+        led.reserve("k2", "fable-high", 0.95)
+    assert Ledger(tmp_path / "l.jsonl").spent_api == pytest.approx(0.1)  # survives restart
 
 
 def test_runner_is_cached_and_gold_blind(tmp_path):

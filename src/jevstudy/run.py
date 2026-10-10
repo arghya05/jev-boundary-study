@@ -15,6 +15,10 @@ from .adapters.base import Result
 from .canonical import Task, read_jsonl, task_hash
 
 
+def is_paid(system: str) -> bool:
+    return system.startswith(("astra", "fable"))
+
+
 class BudgetStop(RuntimeError):
     pass
 
@@ -26,12 +30,15 @@ class Ledger:
         self.path = Path(path)
         self.lock = threading.Lock()
         self.spent = 0.0
+        self.spent_api = 0.0   # paid provider dollars only; GPU-time allocations do not count toward the forecast
         self.committed = 0.0
         self.stage_forecast = stage_forecast_usd
         if self.path.exists():
             for ev in read_jsonl(self.path):
                 if ev["event"] == "settle":
                     self.spent += ev["cost_usd"]
+                    if is_paid(ev["system"]):
+                        self.spent_api += ev["cost_usd"]
 
     def _log(self, ev: dict):
         with open(self.path, "a") as f:
@@ -39,10 +46,11 @@ class Ledger:
 
     def reserve(self, key: str, system: str, max_usd: float):
         with self.lock:
-            # A forecast is a review trigger, not a hard cap: exceeding it stops new calls until reviewed.
-            if self.stage_forecast is not None and self.spent + self.committed + max_usd > self.stage_forecast:
+            # A forecast is a review trigger, not a hard cap: exceeding it stops new paid calls until reviewed.
+            if (is_paid(system) and self.stage_forecast is not None
+                    and self.spent_api + self.committed + max_usd > self.stage_forecast):
                 raise BudgetStop(f"stage forecast ${self.stage_forecast:.2f} would be exceeded "
-                                 f"(spent {self.spent:.2f} + committed {self.committed:.2f} + {max_usd:.2f})")
+                                 f"(API spent {self.spent_api:.2f} + committed {self.committed:.2f} + {max_usd:.2f})")
             self.committed += max_usd
             self._log({"event": "reserve", "key": key, "system": system, "max_usd": max_usd})
 
@@ -50,10 +58,12 @@ class Ledger:
         with self.lock:
             self.committed -= max_usd
             self.spent += cost
+            if is_paid(system):
+                self.spent_api += cost
             self._log({"event": "settle", "key": key, "system": system, "cost_usd": cost, "usage": usage})
 
     def summary(self) -> dict:
-        return {"spent_usd": round(self.spent, 4), "committed_usd": round(self.committed, 4)}
+        return {"api_spent_usd": round(self.spent_api, 4), "committed_usd": round(self.committed, 4)}
 
 
 class Cache:
@@ -143,6 +153,7 @@ def submit_openai_batch(adapter, tasks: list[Task], workdir: Path, ledger: Ledge
     up = adapter.client.files.create(file=open(src, "rb"), purpose="batch")
     b = adapter.client.batches.create(input_file_id=up.id, endpoint="/v1/responses", completion_window="24h")
     (workdir / "openai_batch_id.txt").write_text(b.id)
+    (workdir / "submitted_ids.json").write_text(json.dumps([t.task_id for t in tasks]))
     return b.id
 
 
@@ -152,6 +163,7 @@ def submit_anthropic_batch(adapter, tasks: list[Task], workdir: Path, ledger: Le
         ledger.reserve(adapter.request_key(t), adapter.system + "-batch", adapter.max_cost(t) * 0.5)
     b = adapter.client.messages.batches.create(requests=[adapter.batch_request(t) for t in tasks])
     (workdir / "anthropic_batch_id.txt").write_text(b.id)
+    (workdir / "submitted_ids.json").write_text(json.dumps([t.task_id for t in tasks]))
     return b.id
 
 
