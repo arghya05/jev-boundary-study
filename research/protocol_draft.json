@@ -1,0 +1,293 @@
+{
+  "protocol_version": 2,
+  "research_date": "2026-10-04",
+  "status": "empirical_proposal_novelty_unconfirmed_paid_execution_disabled",
+  "deliverable_mode": "plan_only_user_will_execute_with_Claude",
+  "execution_started": false,
+  "experiment_charges_incurred_usd": 0,
+  "execution_handoff": "CLAUDE_HANDOFF.md",
+  "consolidated_plan": "PLAN.md",
+  "supersedes": "DASC semantic-parser and solver-method proposal",
+  "working_title": "When Can Decision Models Replace Frontier LLMs? Controlled Evidence on Accuracy and Cost",
+  "primary_question": "Where official Jev has higher accuracy, comparable quality at lower cost, or a material deficit against reasoning-enabled frontier APIs",
+  "candidate_contribution": "Controlled and held-out-validated explanation of a task-dependent capability and cost boundary; novelty unconfirmed",
+  "novelty_audit": "research/EMPIRICAL_NOVELTY_AUDIT.md",
+  "gap_inventory": "research/GAP_INVENTORY.md",
+  "identified_questions_count": 20,
+  "primary_candidate_gap_ids": ["G01", "G03"],
+  "optional_candidate_gap_ids": ["G02"],
+  "all_identified_questions_must_be_executed": false,
+  "confirmed_previously_unaddressed_gaps": [],
+  "fairness_protocol": "research/FAIR_COMPARISON_PROTOCOL.md",
+  "novelty_gate_passed": false,
+  "fundamental_contribution_established": false,
+  "benchmark_results_available": false,
+  "budget": {
+    "paid_execution_enabled": false,
+    "pilot_aggregate_ceiling_usd": null,
+    "budget_choice_status": "user_requested_flexible_budget_no_hard_numeric_limits",
+    "exact_numeric_ceiling_required": false,
+    "full_study_enabled": false,
+    "full_study_ceiling_usd": null,
+    "pilot_allocations_usd": null,
+    "spending_policy": "stage forecasts and frequent usage reconciliation; expand for scientific value without an invented numeric cap",
+    "commitment_accounting": "track spent money plus all queued and in-flight billable requests",
+    "first_request_policy": "forecast expected and configured maximum billable usage; no unsupported average-cost assumption",
+    "unknown_price_or_usage": "stop_new_paid_requests",
+    "automatic_larger_study_allowance": false,
+    "optional_controls_automatically_funded": false
+  },
+  "models": {
+    "official_jev": {
+      "proposed_id": "jev-1.13.0",
+      "interface": "native typed choice",
+      "extra_semantic_queries_primary": 0
+    },
+    "openai_frontier": {
+      "proposed_id": "gpt-6-astra",
+      "proposed_reasoning_effort": "high",
+      "native_reasoning_enabled": true
+    },
+    "claude_frontier": {
+      "proposed_id": "claude-fable-5-1",
+      "proposed_reasoning_effort": "high",
+      "native_adaptive_thinking": true
+    },
+    "required_systems": [
+      "official_jev",
+      "openai_frontier",
+      "claude_frontier"
+    ],
+    "versions_resolved": false,
+    "recheck_availability_and_recommendations_before_freeze": true,
+    "self_hosting_required": false,
+    "open_weight_replication_required": false,
+    "silent_model_substitution_allowed": false,
+    "actual_model_and_config_manifests": null
+  },
+  "rate_snapshot_usd_per_million": {
+    "official_jev_input": 0.042,
+    "official_jev_output": 0,
+    "openai_standard_input": 10,
+    "openai_standard_billable_output": 50,
+    "claude_standard_input": 10,
+    "claude_standard_billable_output": 50,
+    "openai_batch_input": 5,
+    "openai_batch_billable_output": 25,
+    "claude_batch_input": 5,
+    "claude_batch_billable_output": 25,
+    "jev_additional_batch_discount_assumed": false,
+    "checked_date": "2026-10-04",
+    "recheck_before_execution": true,
+    "billing_input_counts_provider_specific": true
+  },
+  "public_panels": [
+    {
+      "family": "logical reasoning",
+      "dataset": "FOLIO",
+      "source": "https://github.com/Yale-LILY/FOLIO",
+      "split": "public validation",
+      "expected_rows": 204,
+      "priority": "first_affordable_full_panel_candidate",
+      "funded": false
+    },
+    {
+      "family": "intent classification",
+      "dataset": "Banking77",
+      "source": "https://github.com/PolyAI-LDN/task-specific-datasets",
+      "split": "test",
+      "expected_rows": 3080,
+      "candidate_classes": 77,
+      "funded": false
+    },
+    {
+      "family": "adversarial inference",
+      "dataset": "ANLI",
+      "source": "https://huggingface.co/datasets/facebook/anli",
+      "split": "test_r3",
+      "expected_rows": 1200,
+      "funded": false
+    },
+    {
+      "family": "correctness judging",
+      "dataset": "JudgeBench",
+      "source": "https://huggingface.co/datasets/ScalerLab/JudgeBench",
+      "splits": {"gpt": 350, "claude": 270},
+      "expected_rows": 620,
+      "shared_question_clustering_required": true,
+      "funded": false
+    }
+  ],
+  "broad_study_expected_rows_before_source_audit": 5104,
+  "broad_study_scope_automatically_selected": false,
+  "panel_manifests": null,
+  "public_benchmark_evidence": {
+    "required_for_public_benchmark_claim": true,
+    "completed_prediction_rows": 0,
+    "same_canonical_task_prompt": true,
+    "native_transport_wrappers_may_differ": true,
+    "full_panel_and_sampled_panel_labels_distinct": true,
+    "historical_leaderboard_substitution_allowed": false,
+    "primary_solver_or_retrieval_allowed": false,
+    "subset_selected_on_model_outcomes_allowed": false,
+    "superiority_claim_before_results_allowed": false,
+    "evidence_specification": "research/PUBLIC_BENCHMARK_PROTOCOL.md"
+  },
+  "pilot": {
+    "max_development_examples": 24,
+    "per_family": 6,
+    "development_sources": [
+      "Banking77 train",
+      "ANLI train_r3",
+      "FOLIO train with disjoint final source stories",
+      "independently authored judge practice cases"
+    ],
+    "telemetry_examples_included_in_pool": 2,
+    "telemetry_responses_reused": true,
+    "public_final_rows_allowed_for_tuning": 0,
+    "purpose": "adapter feasibility, billed usage, directional effects, and final-study projection",
+    "noninferiority_certification_enabled": false,
+    "public_sota_claim_enabled": false,
+    "optional_transformations": "fixed separately priced development-only list; no automatic extra calls",
+    "batch_preferred_for_offline_accuracy_cost": true,
+    "latency_claim_from_batch_allowed": false,
+    "insufficient_reasoning_to_force_cheap_bill_allowed": false,
+    "scale_after_measured_usage_and_evidence_checkpoint": true
+  },
+  "controlled_panel": {
+    "status": "supplementary_design_unfunded",
+    "candidate_heldout_base_graphs": 48,
+    "dependency_depths": [1, 3, 5],
+    "irrelevant_fact_counts": [0, 8],
+    "candidate_base_conditions": 288,
+    "paired_controls": [
+      "decisive fact or rule change with verified new answer",
+      "entity rename or independent premise reorder with preserved answer"
+    ],
+    "optional_evidence_sufficiency_factor": {
+      "gap_id": "G02",
+      "condition": "remove decisive premise with independently verified changed logical label",
+      "included_in_288_base_conditions": false,
+      "additional_cost_and_testing_family_must_be_frozen": true
+    },
+    "secondary_condition": "verified intermediate consequences versus matched irrelevant information",
+    "gold_source": "independent deterministic formal reference with cross-check and blinded text validation",
+    "primary_sampling_unit": "base graph",
+    "variants_are_independent_examples": false,
+    "remaining_confound_logging_required": true,
+    "exact_number_of_additional_control_calls": null,
+    "sealed_graph_and_template_seeds": null,
+    "natural_task_exact_depth_available_without_validated_graph": false
+  },
+  "fairness": {
+    "canonical_task_hash_covers": [
+      "instructions",
+      "evidence",
+      "question",
+      "candidate descriptions and order",
+      "examples"
+    ],
+    "primary_zero_shot": true,
+    "same_semantic_information": true,
+    "same_runpod_client_environment": true,
+    "provider_internal_hardware_identical_claim_allowed": false,
+    "input_token_counts_assumed_identical_in_results": false,
+    "tools_retrieval_memory_disabled_for_all": true,
+    "paid_solver_assistance_primary": false,
+    "reasoning_disabled_frontier_primary": false,
+    "max_output_headroom": "development-validated and frozen; include all billable internal reasoning",
+    "latency_mode": "synchronous, concurrency one, streaming off, randomized interleaved provider order",
+    "batch_cost_with_synchronous_latency_combination_allowed": false,
+    "max_transient_retries": 1,
+    "outcome_based_retries_allowed": false,
+    "native_sdk_hidden_retries_must_be_bounded": true,
+    "gold_fields_in_inference": [],
+    "failed_invalid_or_truncated_rows": "remain in denominator under frozen official scoring treatment"
+  },
+  "statistics": {
+    "primary_metric": "accuracy per public panel",
+    "secondary_metrics": [
+      "Banking77 macro-F1",
+      "operational failure rate",
+      "paired intervention accuracy and invariance",
+      "actual USD per 1000 decisions",
+      "total study expense",
+      "interactive latency where adequately sampled"
+    ],
+    "delta_definition": "Jev accuracy minus each frontier accuracy",
+    "draft_noninferiority_margin": 0.02,
+    "margin_requires_deployment_justification_before_freeze": true,
+    "noninferiority_from_nonsignificance_allowed": false,
+    "four_family_primary_comparisons": 8,
+    "default_multiplicity": "Bonferroni simultaneous intervals over frozen family/provider comparisons",
+    "primary_uncertainty_unit": "independent source story/question; graph seeds for synthetic variants",
+    "exact_interval_and_cluster_procedure": null,
+    "power_plan": "based on development paired discordance and independent-cluster counts; freeze before final calls",
+    "reruns_are_new_independent_examples": false,
+    "unregistered_slices_for_primary_claim_allowed": false
+  },
+  "selection_rule": {
+    "status": "optional_explanatory_hypothesis_unfunded",
+    "features_available_before_paid_inference_required": true,
+    "candidate_features": [
+      "input length",
+      "candidate count",
+      "explicit rule structure",
+      "validated dependency depth where available"
+    ],
+    "required_reference_rules": [
+      "length only",
+      "task-family lookup",
+      "relevant established routing method if making a routing contribution"
+    ],
+    "heldout_checks": ["unseen graph templates", "leave-one-family-out transfer only when funded"],
+    "tuning_on_heldout_outcomes_allowed": false,
+    "generic_confidence_cascade_claimed_novel": false,
+    "deployment_categories": [
+      "Jev superiority",
+      "Jev noninferiority and lower measured cost",
+      "meaningful frontier accuracy advantage",
+      "inconclusive or conflicting"
+    ]
+  },
+  "cost_accounting": {
+    "billed_reasoning_required": true,
+    "double_count_reasoning_in_output_total_allowed": false,
+    "billable_failed_attempts_and_retries_included": true,
+    "cache_read_and_write_costs_included": true,
+    "provider_invoice_reconciliation_required": true,
+    "shared_runpod_and_storage_allocation": "consistent disclosed allocation across systems",
+    "report_views": [
+      "actual marginal API expense",
+      "interactive operating point",
+      "offline operating point",
+      "dated standardized uncached estimate",
+      "total study outlay",
+      "out-of-pocket credits separately"
+    ],
+    "economic_sensitivity": "cost per decision plus prespecified error consequences; break-even analysis",
+    "headline_price_ratio_as_matched_quality_result_allowed": false
+  },
+  "runtime": {
+    "all_experiment_execution_location": "RunPod",
+    "local_laptop_experiment_execution_allowed": false,
+    "runpod_provisioned": false,
+    "coordinator_policy": "inexpensive suitable live quote and short active sessions; no fixed hourly or duration cap",
+    "live_quote_required": true,
+    "stop_pod_while_batch_waits": true,
+    "request_cache": "task/prompt/model/version/effort/output/schema/protocol hashes"
+  },
+  "unresolved_before_execution": [
+    "staged expected and conservative cost forecasts under the flexible-budget instruction",
+    "defensible empirical contribution after close-prior comparison",
+    "claim-by-claim distinction from the gap inventory's 16-source register",
+    "model access and current native reasoning settings",
+    "dataset revisions, row IDs, source clusters, hashes, and licenses",
+    "canonical prompts and audited native wrappers",
+    "output headroom and billable usage reservations",
+    "exact statistical intervals, multiplicity, and power projection",
+    "complete prespecified scope and its cost and precision projection",
+    "controlled graph construction, semantic validation, and sealed seeds",
+    "public freeze and release instructions"
+  ]
+}

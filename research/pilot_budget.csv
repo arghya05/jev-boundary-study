@@ -1,0 +1,8 @@
+category,estimate_basis,scaling_policy
+official_jev,actual billed input tokens times current Jev rate,direct decisions and prespecified controls
+openai_frontier,actual input cache and billable output categories,credible native reasoning with batch when supported
+claude_frontier,actual input cache and billable output categories,same tasks and comparable development effort
+runpod_coordinator,live hourly quote times all active and idle sessions,stop while remote API batches wait
+storage,actual retained data and volume duration,export small artifacts and remove unnecessary paid storage
+retries_and_controls,documented attempted calls and fixed control list,no outcome based retries or prompt hunting
+budget_policy,flexible with no fixed numeric ceiling,stage forecasts based on measured usage and scientific value
