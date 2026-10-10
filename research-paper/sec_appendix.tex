@@ -75,7 +75,7 @@ runpod/pod.sh create \&\& runpod/pod.sh sync \&\& runpod/pod.sh secrets\\
 runpod/pod.sh ssh 'bash /workspace/jev/runpod/setup\_remote.sh \&\& bash /workspace/jev/runpod/start\_vllm.sh'\\
 jevstudy prepare; jevstudy variants; jevstudy amendments\\
 bash runpod/full\_run.sh\\
-python -m jevstudy.paper\_assets --root . --out paper
+python -m jevstudy.paper\_assets --root . --out research-paper
 \end{quote}
 Raw dataset text is not redistributed; the builders download it from pinned sources.
 Item-level predictions (task IDs, answers, correctness, usage and cost) are released in \texttt{results/final\_item\_level.csv}.

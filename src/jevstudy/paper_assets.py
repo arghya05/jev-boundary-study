@@ -1,6 +1,6 @@
 """Build every results table (LaTeX) and figure (PDF) for the paper from item-level data.
 
-Usage (on the pod): python -m jevstudy.paper_assets --root /workspace/jev --out /workspace/jev/paper
+Usage (on the pod): python -m jevstudy.paper_assets --root /workspace/jev --out /workspace/jev/research-paper
 """
 from __future__ import annotations
 
@@ -577,6 +577,63 @@ def confidence_figure(df, out: Path):
     plt.close(fig)
 
 
+def routing_detail_table(det: list, out: Path):
+    d = pd.DataFrame(det)
+    if d.empty:
+        write(out / "tables" / "routing_detail.tex", "")
+        return
+    pols = ["always_jev", "always_frontier", "confidence_gate", "feature_rule", "feature_rule+conf", "oracle"]
+    rows = []
+    for fr in ("astra-high", "fable-high"):
+        for fam in sorted(d[d.frontier == fr].held_out.unique()):
+            g = d[(d.frontier == fr) & (d.held_out == fam)].set_index("policy")
+            rows.append(f"{LABEL[fr].split(' ')[0]} & {fam} & " + " & ".join(
+                f"{pct(g.accuracy[p])}/{pct(g.share_jev[p], 0)}" if p in g.index else "--" for p in pols) + " \\\\")
+    write(out / "tables" / "routing_detail.tex", r"""\begin{table*}[t]
+\centering\small
+\caption{Leave-one-family-out detail: held-out accuracy (\%) / share routed to JEV-9B (\%) per policy.}
+\label{tab:routingdetail}
+\begin{tabular}{@{}llcccccc@{}}
+\toprule
+Frontier & Held-out family & Always JEV & Always frontier & Conf.\ gate & Feature rule & Rule + conf. & Oracle \\
+\midrule
+""" + "\n".join(rows) + r"""
+\bottomrule
+\end{tabular}
+\end{table*}
+""")
+
+
+def cost_ledger_table(root: Path, df: pd.DataFrame, gh: dict, out: Path):
+    api = df[df.system.isin(["astra-high", "fable-high", "astra-max", "fable-max"])]
+    pan = {"final": "public", "final_gpt": "public", "final_claude": "public"}
+    g = api.groupby(["system", "family"]).agg(n=("task_id", "size"), usd=("cost_usd", "sum"),
+                                              in_tok=("input_tokens", "sum"), out_tok=("output_tokens", "sum")).reset_index()
+    rows = [f"{LABEL[r.system]} & {r.family} & {r.n} & {r.in_tok / 1e6:.2f} & {r.out_tok / 1e6:.3f} & {r.usd:.2f} \\\\" for r in g.itertuples()]
+    led = [json.loads(l) for l in open(root / "results" / "budget_ledger.jsonl")]
+    tot = defaultdict(float)
+    for e in led:
+        if e["event"] == "settle":
+            tot[e["system"].replace("-batch", "")] += e["cost_usd"]
+    api_total = sum(v for k, v in tot.items() if k.startswith(("astra", "fable")))
+    pod_h = sum(gh.values())
+    sess = json.load(open(root / "results" / "pod_sessions.json")) if (root / "results" / "pod_sessions.json").exists() else {}
+    write(out / "tables" / "cost_ledger.tex", r"""\begin{table}[t]
+\centering\small
+\caption{Study cost ledger. API rows: billed usage at list price on the final, ablation and exploratory panels (development calls appear only in the ledger total). Ledger total for all API calls including probes: \$""" + f"{api_total:.2f}" + r""". System~2 pod-hours over its run windows: """ + f"{pod_h:.1f}" + r""" h (\$""" + f"{pod_h * 0.59:.2f}" + r""" at \$0.59/h); the whole pod's rental is reported in the text.}
+\label{tab:ledger}
+\begin{tabular}{@{}llrrrr@{}}
+\toprule
+System & Family & Calls & In (M tok) & Out (M tok) & USD \\
+\midrule
+""" + "\n".join(rows) + r"""
+\bottomrule
+\end{tabular}
+\end{table}
+""")
+    return {"api_total_ledger": api_total, "by_system": dict(tot), "s2_pod_hours": pod_h}
+
+
 def cost_summary(root: Path, df: pd.DataFrame) -> dict:
     led = [json.loads(l) for l in open(root / "results" / "budget_ledger.jsonl")]
     by = defaultdict(float)
@@ -590,7 +647,7 @@ def cost_summary(root: Path, df: pd.DataFrame) -> dict:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default=".")
-    ap.add_argument("--out", default="paper")
+    ap.add_argument("--out", default="research-paper")
     a = ap.parse_args()
     root, out = Path(a.root), Path(a.out)
     (out / "figures").mkdir(parents=True, exist_ok=True)
@@ -604,6 +661,8 @@ def main():
     rev, eff = robustness_tables(df, out)
     length = length_table(df, out)
     routing, routing_detail, _ = routing_tables(df, tasks, out)
+    routing_detail_table(routing_detail, out)
+    ledger = cost_ledger_table(root, df, gh, out)
     bridge = bridge_table(df, out)
     operating_points(main_df, out)
     latency = latency_table(lat, out)
@@ -612,7 +671,7 @@ def main():
     summary = {"main": main_df.to_dict("records"), "paired": paired, "did": did, "controls": ctrl,
                "reversal": rev, "effort": eff, "length": length, "routing": routing, "routing_detail": routing_detail,
                "bridge": bridge, "latency": latency, "deep": deep.to_dict("records"), "gpu_hours": gh,
-               "cost": cost_summary(root, df), "n_items": int(df.task_id.nunique()), "n_rows": int(len(df)),
+               "cost": cost_summary(root, df), "ledger": ledger, "n_items": int(df.task_id.nunique()), "n_rows": int(len(df)),
                "status_counts": df.groupby(["system", "status"]).size().reset_index().to_dict("records")}
     analysis.write_json(summary, root / "results" / "final_summary.json")
     print(json.dumps({k: (v if k in ("paired",) else "...") for k, v in summary.items()}, indent=1, default=str)[:6000])

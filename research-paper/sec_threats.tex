@@ -1,0 +1,30 @@
+\subsection{Threats to validity}
+\label{sec:threats}
+
+\paragraph{Construct: a student, not the teacher.}
+Every decision-model result is about JEV-9B, a community distillation of Jev~1.13 that its authors report trails the teacher on gold accuracy at every option count, flips 11.5\% of sixteen-option answers under reordering (teacher: 7.0\%), and has a KL of 0.234 on unseen task families.
+The ProofWriter bridge (Section~\ref{sec:bridge}) compares the two only at the level of depth-stratified accuracy on different samples of the same strata; it bounds, but does not measure, how far our conclusions transfer to official Jev.
+
+\paragraph{Construct: the controlled fragment.}
+The fragment uses unary predicates, single-premise rules and invented words.
+It isolates dependency depth from length and vocabulary by construction, at the cost of naturalness; its conclusions apply to this fragment, and the public panels are where naturalness is tested.
+Automated round-trip parsing guarantees that each sentence states its formula, but not that a human would read the templates the same way; we could not run the planned blinded human review.
+
+\paragraph{Internal: matched prompts are not matched interfaces.}
+All systems see identical task content, but JEV-9B consumes it through a typed template it was trained on, while the frontier models receive free text with a schema-constrained answer.
+A prompt engineered separately for each system could change accuracies; we report the common-prompt comparison only, and one-sided prompt tuning would not be a fair alternative.
+System~2 answers in free text that we parse; its parse failures are counted as errors.
+
+\paragraph{Internal: provider-side variation.}
+Frontier models run on hidden infrastructure whose routing and versions we cannot control; we logged the resolved model on every response and saw no change, but services may differ between the days of our runs.
+Reasoning effort names are not comparable compute across providers.
+
+\paragraph{Statistical.}
+FOLIO's 204 rows form only 73 independent stories, so its intervals are wide; no FOLIO-only result can certify a two-point margin.
+Repeated hypotheses are Bonferroni-adjusted within declared families; exploratory analyses (A1, A2, G02, length strata) carry no multiplicity control and are labelled as such.
+Interval coverage was checked by simulation under a latent-normal model, which may not match real discordance structure.
+
+\paragraph{External: cost and latency.}
+JEV-9B's cost is GPU time on one rented A40 at one utilisation level; a different card, batch size or utilisation changes it by integer factors.
+Frontier prices are dated list prices; negotiated or cached pricing would lower them.
+JEV-9B latency excludes a network hop; frontier latency includes one.
