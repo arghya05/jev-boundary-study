@@ -119,32 +119,57 @@ def parse_sentence(s: str, tpl: str):
 
 
 # ---------------------------------------------------------------- reference scorers
-def entails_bruteforce(facts_e: list, rules: list, query: Lit) -> str:
-    """Classical entailment for one entity by enumerating truth assignments.
+def _components(preds, rules):
+    parent = {p: p for p in preds}
 
-    Rules are universally quantified unary implications, so the grounding for
-    one entity is independent of other entities' facts.
-    """
-    preds = sorted({p for p, _ in facts_e} | {p for r in rules for p, _ in r} | {query[0]})
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+    for (bp, _), (hp, _) in rules:
+        parent[find(bp)] = find(hp)
+    comps = {}
+    for p in preds:
+        comps.setdefault(find(p), set()).add(p)
+    return list(comps.values())
+
+
+def _enumerate(preds, facts_e, rules):
+    preds = sorted(preds)
     idx = {p: i for i, p in enumerate(preds)}
     n = len(preds)
     if n > 22:
-        raise ValueError("too many atoms for brute force")
+        raise ValueError("too many atoms in one component for brute force")
     a = ((np.arange(2 ** n)[:, None] >> np.arange(n)) & 1).astype(bool)
     ok = np.ones(len(a), dtype=bool)
     for p, pos in facts_e:
         ok &= a[:, idx[p]] == pos
     for (bp, bpos), (hp, hpos) in rules:
         ok &= ~(a[:, idx[bp]] == bpos) | (a[:, idx[hp]] == hpos)
-    if not ok.any():
-        return "INCONSISTENT"
-    models = a[ok]
-    q = models[:, idx[query[0]]]
-    if (q == query[1]).all():
-        return "True"
-    if (q != query[1]).all():
-        return "False"
-    return "Unknown"
+    return a[ok], idx
+
+
+def entails_bruteforce(facts_e: list, rules: list, query: Lit) -> str:
+    """Classical entailment for one entity by enumerating truth assignments.
+
+    Rules are universally quantified unary implications, so the grounding for one
+    entity is independent of other entities' facts. Predicates that share no rule
+    form independent sub-theories: each is checked for satisfiability, and the
+    query is decided within its own component (exact, not an approximation).
+    """
+    preds = {p for p, _ in facts_e} | {p for r in rules for p, _ in r} | {query[0]}
+    verdict = None
+    for comp in _components(preds, rules):
+        f = [x for x in facts_e if x[0] in comp]
+        r = [x for x in rules if x[0][0] in comp]
+        models, idx = _enumerate(comp, f, r)
+        if len(models) == 0:
+            return "INCONSISTENT"
+        if query[0] in comp:
+            q = models[:, idx[query[0]]]
+            verdict = "True" if (q == query[1]).all() else "False" if (q != query[1]).all() else "Unknown"
+    return verdict
 
 
 def forward_chain(facts_e: list, rules: list, query: Lit) -> tuple[str, int | None]:
@@ -191,7 +216,7 @@ def _gen_base(seed: int, label: str):
     return rng, adjs, names
 
 
-def build_world(seed: int, label: str, depth: int, n_irrelevant: int) -> World:
+def build_world(seed: int, label: str, depth: int, n_irrelevant: int, n_rules: int = N_RULES) -> World:
     """Deterministic: the same (seed, label) shares entities and vocabulary across conditions."""
     rng, adjs, names = _gen_base(seed, label)
     target_e, others = names[0], names[1:1 + N_IRRELEVANT]
@@ -202,7 +227,7 @@ def build_world(seed: int, label: str, depth: int, n_irrelevant: int) -> World:
     chain = list(zip(chain_preds, chain_signs))
     rules = [(chain[i], chain[i + 1]) for i in range(depth)]
     # distractor chains from never-satisfied predicates, lengths 1-2; the first ends at the target with opposite sign
-    remaining = N_RULES - depth
+    remaining = n_rules - depth
     first = True
     while remaining > 0:
         L = 1 if remaining == 1 else rng.choice((1, 2))
@@ -309,3 +334,22 @@ def final_panel(evidence_removal: bool = False):
     # half the held-out seeds use the unseen template T2 (transfer check for the selection rule)
     tpl = {s: ("T1" if i % 2 == 0 else "T2") for i, s in enumerate(FINAL_SEEDS)}
     return panel(FINAL_SEEDS, "controlled_final", tpl, evidence_removal=evidence_removal)
+
+
+# ---------------------------------------------------------------- amendment A1: deeper extension (exploratory)
+DEEP_SEEDS = list(range(777000, 777024))   # 24 fresh seeds, declared before final outcomes were analysed
+DEEP_DEPTHS = (1, 5, 9)
+DEEP_RULES = 12
+
+
+def deep_panel():
+    """Exploratory: frontiers were at ceiling at depth 5 in the pilot, so test depth 9 with 12 rules (length matched)."""
+    out = []
+    for k, seed in enumerate(DEEP_SEEDS):
+        label = LABELS[k % 3]
+        for depth in DEEP_DEPTHS:
+            w = build_world(seed, label, depth, N_IRRELEVANT, n_rules=DEEP_RULES)
+            meta = {"seed": seed, "depth": depth, "irrelevant": N_IRRELEVANT, "template": "T1", "condition": "deep",
+                    "base_label": label, "n_rules": DEEP_RULES}
+            out.append(make_task(w, "T1", f"deep-{seed}-d{depth}", "controlled_deep", f"graph-{seed}", meta))
+    return out

@@ -76,7 +76,7 @@ def load_tasks(path) -> list[Task]:
 
 
 def run_sync(tasks: list[Task], adapters: list, out_path: Path, ledger: Ledger, cache: Cache,
-             seed: int = 0, concurrency: int = 1, log=print) -> list[dict]:
+             seed: int = 0, concurrency: int = 1, log=print, fresh: bool = False, mode_tag: str | None = None) -> list[dict]:
     """Each task is sent to every adapter in a seeded random provider order.
 
     concurrency=1 is the latency track (one request in flight overall).
@@ -91,7 +91,7 @@ def run_sync(tasks: list[Task], adapters: list, out_path: Path, ledger: Ledger, 
         rows = []
         for ad in order:
             key = ad.request_key(task)
-            hit = cache.get(key)
+            hit = None if fresh else cache.get(key)
             if hit:
                 hit = {**hit, "cache_hit": True}
                 rows.append(hit)
@@ -101,7 +101,10 @@ def run_sync(tasks: list[Task], adapters: list, out_path: Path, ledger: Ledger, 
             res: Result = ad.run(task)
             ledger.settle(key, ad.system, mx, res.cost_usd, res.usage)
             d = {**res.to_json(), "cache_hit": False}
-            cache.put(key, d)
+            if mode_tag:
+                d["mode"] = mode_tag
+            else:
+                cache.put(key, d)
             rows.append(d)
             log(f"{task.task_id:<40} {ad.system:<12} {res.status:<9} ans={res.answer_id} "
                 f"${res.cost_usd:.4f} {res.latency_s or 0:.1f}s  ledger={ledger.summary()}")
@@ -119,6 +122,13 @@ def run_sync(tasks: list[Task], adapters: list, out_path: Path, ledger: Ledger, 
             for rows in ex.map(one, tasks):
                 results += rows
     return results
+
+
+def failure_rates(results: list[dict]) -> dict:
+    by = {}
+    for r in results:
+        by.setdefault(r["system"], []).append(r["status"] != "ok")
+    return {k: sum(v) / len(v) for k, v in by.items()}
 
 
 # ---------------------------------------------------------------- provider batches (offline accuracy/cost track)

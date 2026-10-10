@@ -78,3 +78,10 @@ Stop new paid calls and review if: actual spend exceeds the conservative forecas
 6. Primary accuracy uses synchronous calls (measured frontier cost was ~$0.004–0.03 per item, so the batch discount does not change any conclusion); batch prices reported as derived.
 7. Added arm `jev9b-s2` (novelty review recommendation).
 8. 2026-10-10 operational incident: a code-sync error deleted raw result files and the spend ledger on the pod during the pilot. Panels were regenerated with identical task-hash digests; results and ledger were rebuilt from the response cache (`jevstudy restore`); no call was repeated or lost except one $0 credit-error response.
+
+## 10. Amendments (declared 2026-10-10 during the final run, before any final-panel outcome was analysed)
+
+Both amendments are **exploratory**; they do not enter the primary or secondary testing families.
+
+* **A1 — deeper controlled extension.** The pilot put both frontiers (and JEV-9B System 2) at ceiling at depth 5, so the frontier side of the depth interaction is uninformative at 1/3/5. `controlled_deep`: 24 fresh seeds (777000–777023), depths 1/5/9, 12 rules, 8 irrelevant facts, template T1 (72 items; mean evidence length 862/866/863 characters). All four systems. Reported descriptively with cluster-bootstrap intervals. The brute-force reference scorer was generalised to decide entailment per connected predicate component (exact); the frozen controlled panels' gold labels were re-derived and are byte-identical.
+* **A2 — ProofWriter bridge to official Jev.** Hard-Decisions v0.1.0 (MIT; results 2026-10-09) publishes official Jev's open-world ProofWriter accuracy by proof depth (0.977, 0.877, 0.848, 0.799, 0.719, 0.810 for depths 0–5) but not its item IDs. `proofwriter_bridge`: 900 items from tasksource/proofwriter test (`ee4d22d`), OWA, 50 per depth × label, sealed seed, with Hard-Decisions' task wording verbatim. JEV-9B System 1 only. Compared at the distribution level (same depth strata and label balance, different items); this is partial external-validity evidence about the student–teacher gap, not evidence about official Jev on our panels.

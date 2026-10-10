@@ -299,3 +299,37 @@ def build_dev_pilot(raw: Path, per_family: int = 6, exclude_ids: frozenset = fro
         out += stratified_sample(pools[fam], per_family, f"{seed}-{fam}")
     out += judge_practice_tasks()[:per_family]
     return out, srcs
+
+
+# ---------------------------------------------------------------- ProofWriter bridge (exploratory amendment A2)
+SOURCES["proofwriter_test"] = ("https://huggingface.co/datasets/tasksource/proofwriter/resolve/"
+                               "refs%2Fconvert%2Fparquet/default/test/0000.parquet")
+# Task wording copied verbatim from Hard-Decisions v0.1.0 (MIT), task proofwriter-owa, so JEV-9B's depth curve
+# can be set beside the published official-Jev curve. Item samples differ (their IDs are not released).
+HD_OWA_INSTR = ("Using only the facts and rules in the text, is the statement true, false, or unknown? A statement is true "
+                "if it can be derived from the facts and rules, and false if its negation can be derived. If neither the "
+                "statement nor its negation can be derived, it is unknown. A rule applies only when all of its conditions "
+                "are established; 'not' in a condition requires the negation to be stated or derived.")
+HD_OWA_CHOICES = ("true", "false", "unknown")
+
+
+def load_proofwriter_bridge(raw: Path, per_cell: int = 50, seed: int = DEV_SEED):
+    data, src = fetch("proofwriter_test", raw)
+    rows = [r for r in _parquet_rows(data) if "-OWA-" in r["id"] and r["config"] != "NatLang" and 0 <= r["QDep"] <= 5]
+    cells = defaultdict(list)
+    for i, r in enumerate(rows):
+        cells[(int(r["QDep"]), r["answer"].lower())].append((i, r))
+    pairs = []
+    for (dep, lab) in sorted(cells):
+        pool = cells[(dep, lab)]
+        rng = random.Random(f"{seed}-pw-{dep}-{lab}")
+        for i, r in sorted(rng.sample(pool, min(per_cell, len(pool))), key=lambda x: x[0]):
+            t = Task(
+                task_id=f"pw-{r['id']}-{i}", family="proofwriter", split="bridge",
+                cluster_id=f"pw-theory-{r['id']}",
+                instructions=HD_OWA_INSTR, evidence=r["theory"].strip(),
+                question=f"Statement: {r['question'].strip()}", choices=HD_OWA_CHOICES,
+                meta={"depth": dep, "config": r["config"], "n_rules": r["NRule"], "n_facts": r["NFact"]},
+            )
+            pairs.append((t, Gold(t.task_id, LETTERS[HD_OWA_CHOICES.index(lab)], lab)))
+    return pairs, [src]

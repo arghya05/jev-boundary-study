@@ -13,7 +13,7 @@ from pathlib import Path
 from . import analysis, controlled
 from . import datasets as ds
 from .canonical import PROTOCOL_VERSION, Task, read_jsonl, render, task_hash, write_jsonl
-from .run import (Cache, Ledger, collect_anthropic_batch, collect_openai_batch, load_tasks, run_sync,
+from .run import (Cache, Ledger, failure_rates, collect_anthropic_batch, collect_openai_batch, load_tasks, run_sync,
                   submit_anthropic_batch, submit_openai_batch)
 
 ROOT = Path(os.environ.get("JEVSTUDY_ROOT", Path.cwd()))
@@ -104,8 +104,13 @@ def cmd_run(a):
     adapters = _adapters(a.systems.split(","), a.gpu_rate)
     out = RES / "raw" / f"{a.panel}.{a.run_name}.jsonl"
     print(f"running {len(tasks)} tasks x {[x.system for x in adapters]} -> {out}")
-    run_sync(tasks, adapters, out, ledger, Cache(RES / "cache"), seed=a.seed, concurrency=a.concurrency)
+    res = run_sync(tasks, adapters, out, ledger, Cache(RES / "cache"), seed=a.seed, concurrency=a.concurrency,
+                   fresh=a.fresh, mode_tag="sync-latency" if a.fresh else None)
     print("ledger", ledger.summary())
+    fr = failure_rates(res)
+    print("failure rates", fr)
+    if any(v > 0.10 for v in fr.values()):
+        raise SystemExit(f"STOP: failure rate above 10% on {a.panel}: {fr}")
 
 
 def cmd_batch_submit(a):
@@ -221,6 +226,18 @@ def cmd_variants(a):
     print("latency subset", len(ids))
 
 
+def cmd_amendments(a):
+    """Exploratory amendments A1 (deep controlled extension) and A2 (ProofWriter bridge); see PREREGISTRATION.md §10."""
+    print(_save_panel("controlled_deep", controlled.deep_panel()))
+    pairs, srcs = ds.load_proofwriter_bridge(RAW)
+    print(_save_panel("proofwriter_bridge", pairs))
+    m = json.load(open(MANI / "datasets_manifest.json"))
+    m["sources"] = [s for s in m["sources"] if s["name"] != "proofwriter_test"] + srcs
+    m["hf_dataset_revisions"]["tasksource/proofwriter"] = "ee4d22d49b8486786cbc01c0b6f6f6266e56f3bd"
+    m["licenses"]["proofwriter"] = "CC-BY-4.0 (AI2)"
+    json.dump(m, open(MANI / "datasets_manifest.json", "w"), indent=2)
+
+
 def cmd_restore(a):
     """Rebuild results/raw and the spend ledger from the response cache.
 
@@ -263,6 +280,7 @@ def main(argv=None):
     sp.add_parser("forecast").set_defaults(fn=cmd_forecast)
     sp.add_parser("restore").set_defaults(fn=cmd_restore)
     sp.add_parser("variants").set_defaults(fn=cmd_variants)
+    sp.add_parser("amendments").set_defaults(fn=cmd_amendments)
     for name, fn in (("run", cmd_run), ("batch-submit", cmd_batch_submit), ("batch-collect", cmd_batch_collect)):
         r = sp.add_parser(name)
         r.add_argument("--panel", required=True)
@@ -272,6 +290,7 @@ def main(argv=None):
         r.add_argument("--limit", type=int)
         r.add_argument("--seed", type=int, default=20261010)
         r.add_argument("--concurrency", type=int, default=1)
+        r.add_argument("--fresh", action="store_true", help="latency track: bypass cache, tag rows sync-latency")
         r.add_argument("--gpu-rate", type=float, default=float(os.environ.get("GPU_USD_PER_HR", "0")))
         r.add_argument("--stage-forecast", type=float, default=None,
                        help="review trigger: stop new paid calls if spent+committed would exceed this")

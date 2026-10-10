@@ -15,12 +15,14 @@ FRONTIERS = ("astra-high", "fable-high")
 JEV = "jev9b-s1"
 
 
-def load_frame(task_files, gold_files, result_files) -> pd.DataFrame:
+def load_frame(task_files, gold_files, result_files, include_latency: bool = False) -> pd.DataFrame:
     tasks = {d["task_id"]: Task.from_json(d) for f in task_files for d in read_jsonl(f)}
     gold = {d["task_id"]: d for f in gold_files for d in read_jsonl(f)}
     latest = {}
     for f in result_files:
         for r in read_jsonl(f):
+            if r.get("mode") == "sync-latency" and not include_latency:
+                continue
             latest[(r["system"], r["task_id"], r.get("mode", "sync"))] = r  # last write wins (re-collection)
     rows = []
     for (system, tid, mode), r in latest.items():
