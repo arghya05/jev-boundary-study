@@ -1,0 +1,18 @@
+\begin{table}[t]
+\centering\footnotesize
+\caption{Research position. DM: decision model; RF: reasoning-enabled frontier comparator; LD: depth varied with length, rule count and distractors held fixed; SW: same-weights reasoning arm. \checkmark{} present, $\sim$ partial, --- absent.}
+\label{tab:position}
+\begin{tabularx}{\linewidth}{@{}lccccX@{}}
+\toprule
+Work & DM & RF & LD & SW & What it has that we lack / what we add \\
+\midrule
+Jev benchmark~\citep{jevbench2026} & \checkmark & --- & --- & --- & breadth, multilingual / depth control, reasoning frontiers \\
+JEV-as-a-Judge~\citep{jevjudge2026} & \checkmark & low & --- & --- & judging protocols / high effort, depth, harness \\
+Hard-Decisions~\citep{harddecisions2026} & \checkmark & off & $\sim$ & --- & official Jev, 3{,}600 items / matched length, frontiers \\
+General Decision Models~\citep{gdm2026} & \checkmark & off & --- & $\sim$ & 25 configurations / controlled depth \\
+QMFOL, ProloNg~\citep{qmfol2026,prolong2026} & --- & \checkmark & $\sim$ & --- & deeper chains / a decision model \\
+RouteLLM, FrugalGPT~\citep{routellm2024,frugalgpt2023} & --- & \checkmark & --- & --- & trained routers / decision-model gate \\
+\textbf{This study} & JEV-9B & high & \checkmark & \checkmark & --- / a student, not official Jev \\
+\bottomrule
+\end{tabularx}
+\end{table}

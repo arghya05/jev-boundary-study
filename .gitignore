@@ -14,3 +14,4 @@ results/batches/
 research-paper/main.pdf
 research-paper/*.aux
 research-paper/*.log
+research-paper/submission.pdf

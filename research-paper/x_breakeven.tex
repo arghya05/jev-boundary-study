@@ -1,0 +1,6 @@
+\paragraph{When is the frontier worth paying for?}
+\input{tables/breakeven}
+Expected loss per decision is its cost plus the probability of an error times what an error costs; paying for the frontier is worth it exactly when an error costs more than $c^*=\Delta\text{cost}/\Delta\text{accuracy}$ (Table~\ref{tab:breakeven}).
+Against one-pass JEV-9B, $c^*$ is between one and eighteen cents on every panel: whenever a wrong decision costs a user more than a few cents---a mislabelled support ticket, an accepted bad answer in an evaluation set---the frontier's accuracy pays for itself.
+JEV-H raises $c^*$ by 2--30$\times$ (HaluEval to ANLI), and on RewardBench to \emph{never}: there the harness is both more accurate and cheaper than either frontier.
+The decision rule is established decision analysis, not a contribution; the measured inputs to it are.

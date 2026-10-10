@@ -26,21 +26,4 @@ Table~\ref{tab:position} lists what each line of work already establishes and wh
 We claim no novel generator, router or theorem.
 Our candidate addition is narrow: a \emph{paired} comparison of a one-forward-pass decision model against \emph{reasoning-enabled} frontier models, together with a same-weights reasoning arm, under \emph{jointly} matched depth, length, rule count and distractors, with seed-clustered uncertainty; and a held-out test of whether pre-call features can predict when the decision model suffices.
 
-\begin{table}[t]
-\centering\footnotesize
-\caption{Research position. DM: decision model; RF: reasoning-enabled frontier comparator; LD: depth varied with length, rule count and distractors held fixed; SW: same-weights reasoning arm. \checkmark{} present, $\sim$ partial, --- absent.}
-\label{tab:position}
-\begin{tabularx}{\linewidth}{@{}lccccX@{}}
-\toprule
-Work & DM & RF & LD & SW & What it has that we lack / what we add \\
-\midrule
-Jev benchmark~\citep{jevbench2026} & \checkmark & --- & --- & --- & breadth, multilingual / depth control, reasoning frontiers \\
-JEV-as-a-Judge~\citep{jevjudge2026} & \checkmark & low & --- & --- & judging protocols / high effort, depth, harness \\
-Hard-Decisions~\citep{harddecisions2026} & \checkmark & off & $\sim$ & --- & official Jev, 3{,}600 items / matched length, frontiers \\
-General Decision Models~\citep{gdm2026} & \checkmark & off & --- & $\sim$ & 25 configurations / controlled depth \\
-QMFOL, ProloNg~\citep{qmfol2026,prolong2026} & --- & \checkmark & $\sim$ & --- & deeper chains / a decision model \\
-RouteLLM, FrugalGPT~\citep{routellm2024,frugalgpt2023} & --- & \checkmark & --- & --- & trained routers / decision-model gate \\
-\textbf{This study} & JEV-9B & high & \checkmark & \checkmark & --- / a student, not official Jev \\
-\bottomrule
-\end{tabularx}
-\end{table}
+\fullonly{x_position}

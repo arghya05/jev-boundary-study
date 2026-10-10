@@ -8,12 +8,7 @@ Total API spend for the whole study, including development, probes and ablations
 \input{tables/main_compact}
 \input{tables/paired}
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{figures/operating_points.pdf}
-\caption{Accuracy (95\% Wilson interval) against cost per 1{,}000 decisions (log scale). Circles: measured synchronous list price; crosses: the same frontier usage at batch prices. JEV-9B sits 25--290 times to the left of both frontiers.}
-\label{fig:op}
-\end{figure}
+\fullonly{x_opfig}
 
 \subsection{Public reasoning panels: the frontiers are materially more accurate}
 \label{sec:public}
@@ -30,8 +25,8 @@ The deficit of the one-pass decision path is therefore not a deficit of the back
 \subsection{The controlled panel: not depth, but the absence of a derivation}
 \label{sec:controlled-results}
 \input{tables/controlled_cells}
-\input{tables/did}
-\input{tables/controls}
+\movable{tables/did}
+\movable{tables/controls}
 
 Every reasoning system---both frontiers and JEV-9B System~2---answers all 288 base items correctly at every depth and context (Table~\ref{tab:cells}); the fragment is easy for any system that reasons.
 JEV-9B System~1 is correct on \AccCtlSone\%.
@@ -63,8 +58,8 @@ Because System~2 is flat at 100\%, these contrasts mostly restate System~1's own
 
 \subsection{Judging LLM outputs}
 \label{sec:judging}
-\input{tables/judgetrack}
-\input{tables/length}
+\movable{tables/judgetrack}
+\movable{tables/length}
 
 The judge track asks whether JEV-9B can replace a frontier LLM-as-a-judge.
 \textbf{On RewardBench it is the closest to parity of any panel.}
@@ -80,19 +75,7 @@ We report HaluEval for completeness but draw no conclusion about hallucination d
 
 
 
-\subsection{Is the one-pass probability calibrated?}
-\label{sec:calibration}
-\input{tables/calibration}
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.55\linewidth]{figures/calibration.pdf}
-\caption{Reliability of JEV-9B System~1's top probability by task family (bins with at least 15 items).}
-\label{fig:calibration}
-\end{figure}
-A decision model's selling point is its probability, so we test it out of distribution (Table~\ref{tab:calibration}, Figure~\ref{fig:calibration}).
-On RewardBench the top probability is well calibrated (mean confidence 88.5\% against 87.0\% accuracy; ECE 0.026).
-On the reasoning panels it is systematically overconfident by 6.8 (FOLIO) to 10.7 (controlled) points, with ECE around 0.10---two orders of magnitude above the 0.0007 the model card reports on its in-distribution test set.
-Confidence remains informative for ranking (it is what makes the JEV-H gate work), but a deployment should not read a 0.8 from JEV-9B on a reasoning task as an 80\% chance of being right without recalibrating on its own data.
+\fullonly{x_calibration}
 
 \subsection{The JEV-H harness}
 \label{sec:harness-results}
@@ -117,41 +100,19 @@ The harness still trails clearly on HaluEval (\AccHaluHarn\% vs.\ \AccHaluFable\
 Its cost is \$\CostFolioHarn--\$\CostJbgptHarn{} per thousand items, 6--35 times cheaper than the frontier on the same panel, even with System~2 charged conservatively for all pod time (Table~\ref{tab:main}).
 
 
-\paragraph{Threshold sensitivity (exploratory).}
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{figures/threshold.pdf}
-\caption{JEV-H as the escalation threshold varies (exploratory; the preregistered threshold is 0.90, dotted). Left: accuracy against threshold. Right: accuracy against the share of items escalated to System~2.}
-\label{fig:threshold}
-\end{figure}
-The preregistered threshold of 0.90 was fixed a priori; Figure~\ref{fig:threshold} shows what lower thresholds would have bought, using the System~2 answers already collected.
-Most of the gain arrives early: on RewardBench a threshold of 0.70 reaches 93.4\% while escalating 22\% of items (0.90: 94.4\% at 51\%), and on JudgeBench 0.60 already lifts accuracy from 69.3\% to 80.5\% at 36\% escalation.
-On FOLIO and ANLI the curve keeps rising to 0.90, because the one-pass model is unsure on most items.
-A deployment should choose its threshold from this curve on its own labelled data; \texttt{jevstudy judge} reports it.
+\fullonly{x_threshold}
 
-\subsection{Robustness}
-\label{sec:robust}
-\input{tables/reversal}
-Reversing the option list changes System~1's answer on \FlipFolioSone\% of FOLIO items and \FlipCtlSone\% of controlled items (Table~\ref{tab:reversal}), well below the 11.5\% the model card reports for sixteen-option lists; on these three-option tasks position bias is not the main error source.
-The frontier arms of this ablation and the max-effort ablation were dropped to limit spending (A5).
+\fullonly{x_robustness}
 
-\subsection{Can pre-call features say when JEV-9B is enough?}
-\label{sec:routing-results}
-\input{tables/routing}
-Under leave-one-family-out evaluation (Table~\ref{tab:routing}), no rule reaches the always-frontier accuracy band on every held-out family.
-Against Astra, the JEV-9B confidence gate keeps \RouteAstraGateAcc\% mean held-out accuracy (always-Astra: \RouteAstraAfrAcc\%) at \RouteAstraGateCost{} of the cost, and is within two points of always-Astra on \RouteAstraGateWithin{} folds; the feature rule plus confidence reaches \RouteAstraRuleconfAcc\% at \RouteAstraRuleconfCost{} of the cost (\RouteAstraRuleconfWithin{} folds).
-Length-only and family-lookup rules degenerate to always-frontier on held-out families.
-H3 is therefore only partly supported: features add a little to the confidence gate, neither reliably preserves frontier accuracy on a family it was not fit on, and the oracle (\RouteAstraOracleAcc\% at \RouteAstraOracleCost{} of the cost) shows how much routing headroom remains.
+\fullonly{x_routingres}
+\ifsubmission
+\paragraph{Selection rules (H3).} Under leave-one-family-out evaluation no pre-call rule reliably preserved frontier accuracy on held-out families; the JEV-9B confidence gate kept \RouteAstraGateAcc\% mean accuracy (always-Astra: \RouteAstraAfrAcc\%) at \RouteAstraGateCost{} of the cost, and adding surface features helped little (Appendix~\ref{app:additional}). H3 is only partly supported.
+\fi
 
 \subsection{Bridge to official Jev}
 \label{sec:bridge}
-\input{tables/bridge}
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.62\linewidth]{figures/bridge.pdf}
-\caption{ProofWriter open-world accuracy by proof depth: JEV-9B~S1 (this study, 900 items) against official Jev, Kev-9B and GPT-6 Luna without reasoning as published by Hard-Decisions on a different sample of the same strata.}
-\label{fig:bridge}
-\end{figure}
+\movable{tables/bridge}
+\fullonly{x_bridgefig}
 On ProofWriter (A2, exploratory), JEV-9B falls from \BridgeDZero\% at depth~0 to \BridgeDFive\% at depth~5 (Table~\ref{tab:bridge}, Figure~\ref{fig:bridge}).
 Official Jev, on a different sample of the same strata, falls only to 81.0\%.
 At depth~0 the student is within four points of its teacher; from depth~2 on it tracks Kev-9B, a different 9B decision model, and not Jev.

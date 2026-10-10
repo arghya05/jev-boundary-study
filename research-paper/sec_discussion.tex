@@ -13,24 +13,14 @@ Holding the weights fixed removes the second and third.
 JEV-9B's backbone, allowed to think, matches GPT-6 Astra on FOLIO and solves the controlled panel; allowed one pass, it does neither.
 For practitioners this suggests a cheaper escalation target than a frontier API---the model's own reasoning mode on the same GPU---and JEV-H shows it works: escalating the 38--91\% of items on which the one-pass model is unsure lifts RewardBench to \AccRbHarn\% and ANLI to \AccAnliHarn\%, at 6--35 times lower cost than a frontier judge.
 
-\paragraph{Why depth did not matter.}
-We expected the one-pass model to degrade with each additional dependent step, as models without reasoning do on ProofWriter~\citep{harddecisions2026}.
-On our fragment, it was already far from ceiling at depth one, and its errors were dominated by a reluctance to answer \emph{Unknown} and by instability under renaming and reordering.
-One reading is that a one-pass reader of an unfamiliar formal fragment does not follow rule chains at all, so their length is irrelevant; on ProofWriter, whose natural vocabulary it saw in distillation, depth does matter (Appendix Table~\ref{tab:bridge}).
-A depth effect may therefore require familiarity with the surface form before it can appear.
+\fullonly{x_whydepth}
 
+\fullonly{x_breakeven}
 
-\paragraph{When is the frontier worth paying for?}
-\input{tables/breakeven}
-Expected loss per decision is its cost plus the probability of an error times what an error costs; paying for the frontier is worth it exactly when an error costs more than $c^*=\Delta\text{cost}/\Delta\text{accuracy}$ (Table~\ref{tab:breakeven}).
-Against one-pass JEV-9B, $c^*$ is between one and eighteen cents on every panel: whenever a wrong decision costs a user more than a few cents---a mislabelled support ticket, an accepted bad answer in an evaluation set---the frontier's accuracy pays for itself.
-JEV-H raises $c^*$ by 2--30$\times$ (HaluEval to ANLI), and on RewardBench to \emph{never}: there the harness is both more accurate and cheaper than either frontier.
-The decision rule is established decision analysis, not a contribution; the measured inputs to it are.
-
-\paragraph{Cost, measured.}
-At high effort both frontier models reasoned briefly---tens to a few hundred output tokens per item---so the frontier cost per decision was \$0.002--0.04, far below the planning estimates.
-The economic case for a decision model is thus not that frontier reasoning is unaffordable, but that it is 25--290 times more expensive per decision, which matters at evaluation volume.
-The whole study, including every API call, cost \$\ApiTotal{} in API fees plus a single rented GPU.
+\fullonly{x_costmeasured}
+\ifsubmission
+\paragraph{Cost.} Frontier reasoning cost \$0.002--0.04 per decision here, so the case for a decision model is a 25--290$\times$ cost ratio at evaluation volume rather than unaffordability; the whole study cost \$\ApiTotal{} in API fees (break-even analysis in Appendix~\ref{app:additional}).
+\fi
 
 \begin{table}[t]
 \centering\small
@@ -54,7 +44,7 @@ Do results transfer to official Jev? & ProofWriter depth 5: \BridgeDFive\% vs.\ 
 \end{table}
 
 
-\input{sec_threats}
+\fullonly{sec_threats}
 
 \subsection{Limitations}
 The decision model is a community student, not TypeSafe Jev; two frontier configurations at one effort level stand for the frontier; the controlled fragment is narrow and was validated automatically rather than by human readers; budget limits reduced RewardBench to 500 pairs and left JudgeBench partial; and HaluEval-QA is solvable by length alone. Section~\ref{sec:threats} discusses threats to validity in full.
@@ -62,4 +52,4 @@ The decision model is a community student, not TypeSafe Jev; two frontier config
 \section{Conclusion}
 A one-pass decision model is an excellent default for cheap, calibrated, recognitional judgements and a poor substitute for reasoning, and the deficit lives in the computation rather than in the weights: the same weights that fail in one pass succeed when they think.
 For evaluation pipelines, that suggests a simple architecture---decision model first, its own reasoning mode or a frontier model only when it is unsure---which on RewardBench matched or exceeded both frontier judges we tested, and a simple discipline: measure, on your own labelled data and with paired intervals, whether the cheap path is good enough before trusting it.
-The code, preregistration, item-level predictions and a self-hostable judging API are released at \url{https://github.com/arghya05/jev-boundary-study}.
+The code, preregistration, item-level predictions and a self-hostable judging API are released at \repourl.

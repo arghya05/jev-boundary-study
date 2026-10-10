@@ -23,9 +23,7 @@ The deployment conclusion for a panel and frontier follows a frozen rule with a 
 otherwise \emph{inconclusive}.
 A non-significant difference is never read as equivalence, and a comparison with fewer than 20 independent clusters is inconclusive.
 
-\subsection{Routing evaluation}
-\label{sec:routing}
-For H3, each policy sends an item to JEV-9B System~1 or to one frontier.
-The \emph{feature rule} fits two $L_2$-regularised logistic regressions (predicting JEV-9B and frontier correctness) on seven pre-call surface features and routes to JEV-9B when the predicted loss is under two points; \emph{feature + confidence} adds JEV-9B's top probability.
-Baselines are always-JEV-9B, always-frontier, length only, task-family lookup, a JEV-9B confidence gate whose threshold keeps training accuracy within two points of always-frontier, and the unattainable oracle.
-Rules are fit on all but one family and scored on the held-out one (leave-one-family-out over FOLIO, ANLI, the controlled panel, JudgeBench, RewardBench and HaluEval-QA), and separately on the unseen controlled template.
+\fullonly{x_routingproto}
+\ifsubmission
+The routing protocol (H3) is described in Appendix~\ref{app:additional}.
+\fi

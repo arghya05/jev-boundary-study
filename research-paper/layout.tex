@@ -1,0 +1,9 @@
+% Shared layout switches for the preprint (main.tex) and the anonymised submission (submission.tex).
+\providecommand{\submissionmode}{0}
+\newif\ifsubmission
+\ifnum\submissionmode=1 \submissiontrue \else \submissionfalse \fi
+% full-version-only material; the submission moves it to the appendix
+\newcommand{\fullonly}[1]{\ifsubmission\else\input{#1}\fi}
+\newcommand{\movable}[1]{\ifsubmission\else\input{#1}\fi}
+\newcommand{\repourl}{\ifsubmission an anonymised repository (link withheld for review)\else\url{https://github.com/arghya05/jev-boundary-study}\fi}
+\newcommand{\commitref}[1]{\ifsubmission\texttt{[hash withheld]}\else\texttt{#1}\fi}

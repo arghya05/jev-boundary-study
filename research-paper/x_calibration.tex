@@ -1,0 +1,13 @@
+\subsection{Is the one-pass probability calibrated?}
+\label{sec:calibration}
+\input{tables/calibration}
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.55\linewidth]{figures/calibration.pdf}
+\caption{Reliability of JEV-9B System~1's top probability by task family (bins with at least 15 items).}
+\label{fig:calibration}
+\end{figure}
+A decision model's selling point is its probability, so we test it out of distribution (Table~\ref{tab:calibration}, Figure~\ref{fig:calibration}).
+On RewardBench the top probability is well calibrated (mean confidence 88.5\% against 87.0\% accuracy; ECE 0.026).
+On the reasoning panels it is systematically overconfident by 6.8 (FOLIO) to 10.7 (controlled) points, with ECE around 0.10---two orders of magnitude above the 0.0007 the model card reports on its in-distribution test set.
+Confidence remains informative for ranking (it is what makes the JEV-H gate work), but a deployment should not read a 0.8 from JEV-9B on a reasoning task as an 80\% chance of being right without recalibrating on its own data.

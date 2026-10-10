@@ -1,0 +1,21 @@
+\begin{table}[t]
+\centering\small
+\caption{Panels. All analysed rows are evaluated for every system and failures are scored incorrect. $^*$Reduced by the declared budget amendment A5 (Appendix~\ref{app:prereg}); Banking77-16 was dropped.}
+\label{tab:panels}
+\resizebox{\linewidth}{!}{\begin{tabular}{@{}llrrl@{}}
+\toprule
+Panel & Source (pin) & Rows & Clusters & Role \\
+\midrule
+FOLIO validation & GitHub \texttt{5d7bb84} & 204 & 73 & primary \\
+ANLI test\_r3 & HF \texttt{8e4813d} & 1{,}200 & 1{,}128 & primary \\
+Controlled (base) & 48 sealed seeds & 288 & 48 & primary (H1) \\
+\quad paired controls & same seeds & 96 & 48 & primary (H1) \\
+\quad evidence removed & same seeds & 32 & 32 & exploratory \\
+JudgeBench gpt + claude & HF \texttt{57dd5e0} & 349 of 620$^*$ & 158 & secondary \\
+RewardBench (A3) & HF \texttt{168d848} & 500 of 2{,}985$^*$ & 492 & judge track \\
+HaluEval-QA (A3) & HF \texttt{12a8561} & 1{,}000 & 1{,}000 & judge track \\
+Controlled deep (A1) & 24 sealed seeds & 72 & 24 & exploratory \\
+ProofWriter bridge (A2) & HF \texttt{ee4d22d} & 900 & 804 & exploratory \\
+\bottomrule
+\end{tabular}}
+\end{table}

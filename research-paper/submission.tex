@@ -1,0 +1,86 @@
+\documentclass{article}
+\def\submissionmode{1}
+\def\anonsubmission{1}
+% NeurIPS 2026 style. Build variants:
+%   preprint (named, default):  \usepackage[preprint]{neurips_2026}
+%   anonymous submission:       \usepackage{neurips_2026}
+%   camera-ready:               \usepackage[final]{neurips_2026}
+\ifdefined\anonsubmission
+  \usepackage{neurips_2026}
+\else
+  \usepackage[preprint]{neurips_2026}
+\fi
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs,tabularx,makecell,multirow}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{placeins}
+\captionsetup{font=small,labelfont=bf}
+\setlength{\tabcolsep}{4pt}
+
+\input{layout}
+\input{numbers}
+
+\title{When Can a Decision Model Replace a Reasoning LLM?\\ Controlled, Cost-Accounted Evidence for a Distilled One-Pass Judge}
+
+\author{Arghya Mukherjee\\Independent Researcher\\\texttt{arghya05@gmail.com}\\
+\href{https://orcid.org/0009-0008-3423-8574}{ORCID: 0009-0008-3423-8574}}
+
+\begin{document}
+\raggedbottom
+\maketitle
+
+\input{sec_abstract}
+
+\input{sec_intro}
+\input{sec_related}
+\FloatBarrier
+\input{sec_design}
+\FloatBarrier
+\input{sec_protocol}
+\FloatBarrier
+\input{sec_results}
+\FloatBarrier
+\input{sec_discussion}
+\FloatBarrier
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+\appendix
+\section{Additional Analyses}
+\label{app:additional}
+\input{x_opfig}
+\input{x_position}
+\input{x_panels}
+\input{tables/did}
+\input{tables/judgetrack}
+\input{x_routingproto}
+\input{x_routingres}
+\input{x_calibration}
+\input{x_threshold}
+\input{x_robustness}
+\input{x_bridgefig}
+\input{tables/controls}
+\input{tables/routing}
+\input{tables/bridge}
+\input{tables/length}
+\subsection{Discussion details}
+\input{x_whydepth}
+\input{x_costmeasured}
+\paragraph{When is the frontier worth paying for?}
+\input{x_breakeven}
+\input{sec_threats}
+\FloatBarrier
+\input{sec_appendix}
+\input{sec_checklist}
+
+\end{document}
