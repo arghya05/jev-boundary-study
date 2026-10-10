@@ -1,0 +1,6 @@
+{
+  "protocol": "jevstudy-protocol-1",
+  "example_task_id": "banking-train-5759",
+  "example_task_hash": "078475c46139085f88fb826419a066b73db252510901cffeb24d1d371d013ae4",
+  "canonical_text": "Task: A customer sent a message to a bank's support channel. Select the intent category that best describes the message.\n\nEvidence:\nCustomer message: I requested a refund from Next because the dress I purchased had three arm holes. They said they sent the refund last Wednesday which is nearly a week ago and I still don't have it.  Why not?\n\nQuestion: Which intent category best describes the customer message?\n\nChoices:\nA) request refund\nB) balance not updated after bank transfer\nC) extra charge on statement\nD) Refund not showing up\nE) transfer not received by recipient\nF) direct debit payment not recognised\nG) pending card payment\nH) pending cash withdrawal\nI) balance not updated after cheque or cash deposit\nJ) transaction charged twice\nK) cash withdrawal not recognised\nL) pending transfer\nM) card payment not recognised\nN) card arrival\nO) topping up by card\nP) reverted card payment?\n\nSelect the correct choice using the supplied information and task definition. Return the final choice identifier."
+}

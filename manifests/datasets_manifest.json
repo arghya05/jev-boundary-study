@@ -1,0 +1,116 @@
+{
+  "protocol": "jevstudy-protocol-1",
+  "sources": [
+    {
+      "name": "banking_train",
+      "url": "https://raw.githubusercontent.com/PolyAI-LDN/task-specific-datasets/57ec275d8078af65b7731c2a98be812d844a6d6b/banking_data/train.csv",
+      "sha256": "b06e26ac675513959a63135f11b94ea7786ed02da65db93a5650d8838cbc664b",
+      "bytes": 839073
+    },
+    {
+      "name": "anli_train_r3",
+      "url": "https://huggingface.co/datasets/facebook/anli/resolve/refs%2Fconvert%2Fparquet/plain_text/train_r3/0000.parquet",
+      "sha256": "c1d3f614d673888ac56b9ab62324e21583c98a11c4fef84e938d0f8fc414b29a",
+      "bytes": 14333467
+    },
+    {
+      "name": "folio_train",
+      "url": "https://raw.githubusercontent.com/Yale-LILY/FOLIO/5d7bb84c7edab3fb358e057d2807f19cf5cf5e2d/data/v0.0/folio-train.jsonl",
+      "sha256": "008d34b750d31fa7f014e953228adf4db81ec34bbda9e7f67c96c60438d1e6b2",
+      "bytes": 787496
+    },
+    {
+      "name": "folio_validation",
+      "url": "https://raw.githubusercontent.com/Yale-LILY/FOLIO/5d7bb84c7edab3fb358e057d2807f19cf5cf5e2d/data/v0.0/folio-validation.jsonl",
+      "sha256": "6922c988ef10987bd6545568ee8e63e897af80994591fa20539767da58f8e3d1",
+      "bytes": 173456
+    },
+    {
+      "name": "anli_test_r3",
+      "url": "https://huggingface.co/datasets/facebook/anli/resolve/refs%2Fconvert%2Fparquet/plain_text/test_r3/0000.parquet",
+      "sha256": "3232c4217979da00b2cd6ed97d099a8a8edf04530193ea52e3c8d69190de92a2",
+      "bytes": 434550
+    },
+    {
+      "name": "banking_test",
+      "url": "https://raw.githubusercontent.com/PolyAI-LDN/task-specific-datasets/57ec275d8078af65b7731c2a98be812d844a6d6b/banking_data/test.csv",
+      "sha256": "d12d6e3bc4c3103966ae786dc435913c0c563dfa328f5a3646d0e62cfeeb474d",
+      "bytes": 239961
+    },
+    {
+      "name": "judgebench_gpt",
+      "url": "https://huggingface.co/datasets/ScalerLab/JudgeBench/resolve/refs%2Fconvert%2Fparquet/default/gpt/0000.parquet",
+      "sha256": "318c03fadc9e6d6d3eace6d890aa76d5314ddee4d5c16ea449299f903471854a",
+      "bytes": 841445
+    },
+    {
+      "name": "judgebench_claude",
+      "url": "https://huggingface.co/datasets/ScalerLab/JudgeBench/resolve/refs%2Fconvert%2Fparquet/default/claude/0000.parquet",
+      "sha256": "7836025f66d59a1f0f68b3f09706863b16651e930367ac5abd9007e998e0e5e0",
+      "bytes": 402571
+    }
+  ],
+  "licenses": {
+    "folio": "CC-BY-SA-4.0 per Yale-LILY/FOLIO LICENSE (verify before redistributing text)",
+    "banking77": "CC-BY-4.0",
+    "anli": "CC-BY-NC-4.0",
+    "judgebench": "MIT (HF card); underlying source questions carry their own licenses"
+  },
+  "pinned_commits": {
+    "Yale-LILY/FOLIO": "5d7bb84c7edab3fb358e057d2807f19cf5cf5e2d",
+    "PolyAI-LDN/task-specific-datasets": "57ec275d8078af65b7731c2a98be812d844a6d6b"
+  },
+  "hf_dataset_revisions": {
+    "facebook/anli": "8e4813d81f46d313dac7892e1c28076917cfcdf9",
+    "ScalerLab/JudgeBench": "57dd5e0b9817d07f05ec8f45a91b2ce1e310e308"
+  },
+  "panels": [
+    {
+      "panel": "dev_pilot",
+      "n": 24,
+      "clusters": 24,
+      "task_hashes_sha256": "c3a439537abf91cc9e68ec1e5074f6f710b69d596c032840575a937438c61acf"
+    },
+    {
+      "panel": "controlled_dev",
+      "n": 48,
+      "clusters": 6,
+      "task_hashes_sha256": "af9f00e951d7678fc534e96748eacd455cbf2ea6b0db36f9072e9f827498844f"
+    },
+    {
+      "panel": "folio_final",
+      "n": 204,
+      "clusters": 73,
+      "task_hashes_sha256": "73cd6464912eb94ac7aad67a13458580d9e1edea0631d7f5474292c8b5d2b519"
+    },
+    {
+      "panel": "anli_final",
+      "n": 1200,
+      "clusters": 1128,
+      "task_hashes_sha256": "45db491b8891b6da568cd80a62d8221ec747b17d808f0aa1c4887350d4acd8d2"
+    },
+    {
+      "panel": "banking_final",
+      "n": 3080,
+      "clusters": 3080,
+      "task_hashes_sha256": "32abeeeed246bc5db6eae8a9f7458ec306e2013f8cf53ff304212c1290701faf"
+    },
+    {
+      "panel": "judgebench_final",
+      "n": 620,
+      "clusters": 268,
+      "task_hashes_sha256": "73a26507d5f2660fbb865595c9f7d3ee9352f24b42cee17f91165ce8d6c99d9a"
+    },
+    {
+      "panel": "controlled_final",
+      "n": 416,
+      "clusters": 48,
+      "task_hashes_sha256": "4922f9fae59a3b55d4ca49ada4401c7bf117c06a4afc1ccc94086b47dd335497"
+    }
+  ],
+  "notes": [
+    "FOLIO v0.0 from the authors' GitHub; HF copy is gated. 'Uncertain'/'Unknown' -> Unknown.",
+    "Banking77 presented as 16 candidates (gold + 15 nearest train-centroid labels) because JEV-9B's choice head supports at most 16 options; identical candidates for all systems.",
+    "Clusters: FOLIO premise set; ANLI premise; JudgeBench source+original_id; controlled graph seed."
+  ]
+}

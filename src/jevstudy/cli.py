@@ -70,12 +70,12 @@ def _adapters(names, gpu_rate):
     rc = json.load(open(MANI / "rate_card.json"))
     out = []
     for n in names:
-        if n == "astra":
+        if n in ("astra", "astra-max"):
             from .adapters.openai_astra import AstraAdapter
-            out.append(AstraAdapter(rc["gpt-6-astra"]))
-        elif n == "fable":
+            out.append(AstraAdapter(rc["gpt-6-astra"], effort="max" if n.endswith("max") else "high"))
+        elif n in ("fable", "fable-max"):
             from .adapters.anthropic_fable import FableAdapter
-            out.append(FableAdapter(rc["claude-fable-5-1"]))
+            out.append(FableAdapter(rc["claude-fable-5-1"], effort="max" if n.endswith("max") else "high"))
         elif n in ("jev-s1", "jev-s2"):
             from huggingface_hub import hf_hub_download
             from .adapters.jev9b import Jev9bS1Adapter, Jev9bS2Adapter
@@ -94,7 +94,7 @@ def _adapters(names, gpu_rate):
 def cmd_run(a):
     tasks = load_tasks(PANELS / f"{a.panel}.tasks.jsonl")
     if a.ids:
-        keep = set(a.ids.split(","))
+        keep = set(json.load(open(a.ids[1:]))["ids"]) if a.ids.startswith("@") else set(a.ids.split(","))
         tasks = [t for t in tasks if t.task_id in keep]
     if a.limit:
         tasks = tasks[: a.limit]
@@ -162,6 +162,87 @@ def cmd_analyze(a):
     print("wrote", out)
 
 
+FAMILY_OF_PANEL = {"folio_final": "folio", "anli_final": "anli", "banking_final": "banking77",
+                   "judgebench_final": "judge_practice", "controlled_final": "controlled"}
+
+
+def cmd_forecast(a):
+    """Price each final panel from measured development usage: mean (expected) and p95 (conservative) per item.
+
+    Sync prices are used for the expected view; the batch view halves frontier token prices.
+    JudgeBench is priced from the judge-practice cases scaled by input length, since its responses are far longer.
+    """
+    names = ["dev_pilot", "controlled_dev"]
+    df = analysis.load_frame([PANELS / f"{n}.tasks.jsonl" for n in names], [PANELS / f"{n}.gold.jsonl" for n in names],
+                             sorted((RES / "raw").glob("*.jsonl")))
+    df = df[~df.cache_hit.astype(bool)]
+    rows = []
+    for panel, fam in FAMILY_OF_PANEL.items():
+        tasks = load_tasks(PANELS / f"{panel}.tasks.jsonl")
+        n = len(tasks)
+        mean_chars = sum(len(render(t)) for t in tasks) / n
+        for system, g in df[df.family == fam].groupby("system"):
+            dev_chars = g.task_id.map({t.task_id: len(render(t)) for n2 in names for t in load_tasks(PANELS / f"{n2}.tasks.jsonl")}).mean()
+            scale = mean_chars / dev_chars if fam == "judge_practice" else 1.0
+            rows.append({"panel": panel, "n": n, "system": system, "mean_usd": g.cost_usd.mean() * scale,
+                         "p95_usd": g.cost_usd.quantile(0.95) * scale, "expected_total": g.cost_usd.mean() * scale * n,
+                         "conservative_total": g.cost_usd.quantile(0.95) * scale * n,
+                         "mean_out_tokens": g.output_tokens.mean(), "max_out_tokens": g.output_tokens.max(),
+                         "input_scale": round(scale, 2)})
+    import pandas as pd
+    out = pd.DataFrame(rows)
+    out.to_csv(RES / "forecast.csv", index=False)
+    print(out.to_string(index=False))
+    print("\nTotals by system (expected / conservative, sync list price):")
+    print(out.groupby("system")[["expected_total", "conservative_total"]].sum().to_string())
+
+
+def cmd_variants(a):
+    """Prespecified robustness panels: option-order reversal and a sealed latency subset."""
+    import random
+    from .canonical import Gold, LETTERS
+    for name, keep in (("folio_final", lambda t: True), ("controlled_final", lambda t: t.meta.get("condition") == "base")):
+        tasks = load_tasks(PANELS / f"{name}.tasks.jsonl")
+        gold = {d["task_id"]: d for d in read_jsonl(PANELS / f"{name}.gold.jsonl")}
+        pairs = []
+        for t in tasks:
+            if not keep(t):
+                continue
+            rev = Task(t.task_id + "-rev", t.family, t.split + "_rev", t.cluster_id, t.instructions, t.evidence, t.question,
+                       tuple(reversed(t.choices)), {**t.meta, "variant": "options_reversed", "of": t.task_id})
+            g = gold[t.task_id]
+            idx = len(t.choices) - 1 - LETTERS.index(g["answer_id"])
+            pairs.append((rev, Gold(rev.task_id, LETTERS[idx], g["answer_label"])))
+        print(_save_panel(f"{name}_rev", pairs))
+    folio = load_tasks(PANELS / "folio_final.tasks.jsonl")
+    rng = random.Random(f"{ds.DEV_SEED}-latency")
+    ids = sorted(rng.sample([t.task_id for t in folio], 100))
+    json.dump({"seed": f"{ds.DEV_SEED}-latency", "panel": "folio_final", "ids": ids}, open(MANI / "latency_subset.json", "w"), indent=2)
+    print("latency subset", len(ids))
+
+
+def cmd_restore(a):
+    """Rebuild results/raw and the spend ledger from the response cache.
+
+    Used once (2026-10-10) after a code-sync error deleted results/raw and the ledger on the pod.
+    Every non-error response is cached with its usage and cost, so no paid call is repeated.
+    Transport errors are not cached; the one such call (Anthropic credit error) cost $0.
+    """
+    (RES / "raw").mkdir(parents=True, exist_ok=True)
+    rows = [json.loads(p.read_text()) for p in sorted((RES / "cache").glob("*.json"))]
+    rows.sort(key=lambda r: r["created_at"])
+    write_jsonl(RES / "raw" / "restored_from_cache.jsonl", rows)
+    with open(RES / "budget_ledger.jsonl", "w") as f:
+        for r in rows:
+            f.write(json.dumps({"event": "settle", "key": r["request_key"], "system": r["system"], "cost_usd": r["cost_usd"],
+                                "usage": r["usage"], "t": r["created_at"], "note": "reconstructed from cache"}) + "\n")
+        for sysn, out_tok in (("astra-high-probe", 53), ("astra-max-probe", 107)):
+            f.write(json.dumps({"event": "settle", "key": "manual-effort-probe", "system": sysn,
+                                "cost_usd": (338 * 10 + out_tok * 50) / 1e6, "usage": {"input_tokens": 338, "output_tokens": out_tok},
+                                "note": "effort configuration probe on ctl-9001-d5-c8, outside the runner"}) + "\n")
+    print(f"restored {len(rows)} results; ledger", Ledger(RES / "budget_ledger.jsonl").summary())
+
+
 def cmd_env(a):
     import importlib.metadata as md
     lock = {"python": sys.version, "platform": platform.platform(),
@@ -179,6 +260,9 @@ def main(argv=None):
     sp = p.add_subparsers(dest="cmd", required=True)
     sp.add_parser("prepare").set_defaults(fn=cmd_prepare)
     sp.add_parser("env").set_defaults(fn=cmd_env)
+    sp.add_parser("forecast").set_defaults(fn=cmd_forecast)
+    sp.add_parser("restore").set_defaults(fn=cmd_restore)
+    sp.add_parser("variants").set_defaults(fn=cmd_variants)
     for name, fn in (("run", cmd_run), ("batch-submit", cmd_batch_submit), ("batch-collect", cmd_batch_collect)):
         r = sp.add_parser(name)
         r.add_argument("--panel", required=True)

@@ -1,0 +1,444 @@
+{
+  "astra-high": {
+    "leave_one_family_out": {
+      "anli": {
+        "always_jev": {
+          "accuracy": 0.8333333333333334,
+          "cost_usd": 6.732551801930337e-05,
+          "share_jev": 1.0
+        },
+        "always_frontier": {
+          "accuracy": 0.6666666666666666,
+          "cost_usd": 0.0717373255180193,
+          "share_jev": 0.0
+        },
+        "oracle": {
+          "accuracy": 0.8333333333333334,
+          "cost_usd": 6.732551801930337e-05,
+          "share_jev": 1.0
+        },
+        "family_lookup": {
+          "accuracy": 0.6666666666666666,
+          "cost_usd": 0.0717373255180193,
+          "share_jev": 0.0
+        },
+        "length_only": {
+          "accuracy": 0.6666666666666666,
+          "cost_usd": 0.0717373255180193,
+          "share_jev": 0.0
+        },
+        "feature_rule": {
+          "accuracy": 0.6666666666666666,
+          "cost_usd": 0.0717373255180193,
+          "share_jev": 0.0
+        },
+        "feature_rule+conf": {
+          "accuracy": 0.6666666666666666,
+          "cost_usd": 0.0717373255180193,
+          "share_jev": 0.0
+        },
+        "confidence_gate": {
+          "accuracy": 0.8333333333333334,
+          "cost_usd": 0.04883732551801931,
+          "share_jev": 0.3333333333333333,
+          "threshold": 0.9199999999999999
+        }
+      },
+      "banking77": {
+        "always_jev": {
+          "accuracy": 1.0,
+          "cost_usd": 9.12636717707048e-05,
+          "share_jev": 1.0
+        },
+        "always_frontier": {
+          "accuracy": 1.0,
+          "cost_usd": 0.022841263671770706,
+          "share_jev": 0.0
+        },
+        "oracle": {
+          "accuracy": 1.0,
+          "cost_usd": 9.12636717707048e-05,
+          "share_jev": 1.0
+        },
+        "family_lookup": {
+          "accuracy": 1.0,
+          "cost_usd": 0.022841263671770706,
+          "share_jev": 0.0
+        },
+        "length_only": {
+          "accuracy": 1.0,
+          "cost_usd": 9.12636717707048e-05,
+          "share_jev": 1.0
+        },
+        "feature_rule": {
+          "accuracy": 1.0,
+          "cost_usd": 9.12636717707048e-05,
+          "share_jev": 1.0
+        },
+        "feature_rule+conf": {
+          "accuracy": 1.0,
+          "cost_usd": 9.12636717707048e-05,
+          "share_jev": 1.0
+        },
+        "confidence_gate": {
+          "accuracy": 1.0,
+          "cost_usd": 9.12636717707048e-05,
+          "share_jev": 1.0,
+          "threshold": 0.81
+        }
+      },
+      "controlled": {
+        "always_jev": {
+          "accuracy": 0.4791666666666667,
+          "cost_usd": 0.0007315052928564708,
+          "share_jev": 1.0
+        },
+        "always_frontier": {
+          "accuracy": 1.0,
+          "cost_usd": 0.26973150529285644,
+          "share_jev": 0.0
+        },
+        "oracle": {
+          "accuracy": 1.0,
+          "cost_usd": 0.14351150529285647,
+          "share_jev": 0.4791666666666667
+        },
+        "family_lookup": {
+          "accuracy": 1.0,
+          "cost_usd": 0.26973150529285644,
+          "share_jev": 0.0
+        },
+        "length_only": {
+          "accuracy": 0.4791666666666667,
+          "cost_usd": 0.0007315052928564708,
+          "share_jev": 1.0
+        },
+        "feature_rule": {
+          "accuracy": 0.9791666666666666,
+          "cost_usd": 0.25446150529285644,
+          "share_jev": 0.0625
+        },
+        "feature_rule+conf": {
+          "accuracy": 0.9791666666666666,
+          "cost_usd": 0.25348150529285646,
+          "share_jev": 0.0625
+        },
+        "confidence_gate": {
+          "accuracy": 0.4791666666666667,
+          "cost_usd": 0.0007315052928564708,
+          "share_jev": 1.0,
+          "threshold": 0.3
+        }
+      },
+      "folio": {
+        "always_jev": {
+          "accuracy": 0.6666666666666666,
+          "cost_usd": 6.460719461740356e-05,
+          "share_jev": 1.0
+        },
+        "always_frontier": {
+          "accuracy": 0.8333333333333334,
+          "cost_usd": 0.0345446071946174,
+          "share_jev": 0.0
+        },
+        "oracle": {
+          "accuracy": 0.8333333333333334,
+          "cost_usd": 0.004944607194617404,
+          "share_jev": 0.8333333333333334
+        },
+        "family_lookup": {
+          "accuracy": 0.8333333333333334,
+          "cost_usd": 0.0345446071946174,
+          "share_jev": 0.0
+        },
+        "length_only": {
+          "accuracy": 0.8333333333333334,
+          "cost_usd": 0.0345446071946174,
+          "share_jev": 0.0
+        },
+        "feature_rule": {
+          "accuracy": 0.6666666666666666,
+          "cost_usd": 0.0162446071946174,
+          "share_jev": 0.6666666666666666
+        },
+        "feature_rule+conf": {
+          "accuracy": 0.8333333333333334,
+          "cost_usd": 0.026114607194617404,
+          "share_jev": 0.3333333333333333
+        },
+        "confidence_gate": {
+          "accuracy": 0.8333333333333334,
+          "cost_usd": 0.018124607194617403,
+          "share_jev": 0.5,
+          "threshold": 0.81
+        }
+      },
+      "judge_practice": {
+        "always_jev": {
+          "accuracy": 1.0,
+          "cost_usd": 6.577387244679913e-05,
+          "share_jev": 1.0
+        },
+        "always_frontier": {
+          "accuracy": 1.0,
+          "cost_usd": 0.0252057738724468,
+          "share_jev": 0.0
+        },
+        "oracle": {
+          "accuracy": 1.0,
+          "cost_usd": 6.577387244679913e-05,
+          "share_jev": 1.0
+        },
+        "family_lookup": {
+          "accuracy": 1.0,
+          "cost_usd": 0.0252057738724468,
+          "share_jev": 0.0
+        },
+        "length_only": {
+          "accuracy": 1.0,
+          "cost_usd": 0.0252057738724468,
+          "share_jev": 0.0
+        },
+        "feature_rule": {
+          "accuracy": 1.0,
+          "cost_usd": 0.0211957738724468,
+          "share_jev": 0.16666666666666666
+        },
+        "feature_rule+conf": {
+          "accuracy": 1.0,
+          "cost_usd": 0.0100257738724468,
+          "share_jev": 0.6666666666666666
+        },
+        "confidence_gate": {
+          "accuracy": 1.0,
+          "cost_usd": 6.577387244679913e-05,
+          "share_jev": 1.0,
+          "threshold": 0.81
+        }
+      }
+    },
+    "unseen_template_T2": null,
+    "n": 72
+  },
+  "fable-high": {
+    "leave_one_family_out": {
+      "anli": {
+        "always_jev": {
+          "accuracy": 0.8333333333333334,
+          "cost_usd": 6.732551801930337e-05,
+          "share_jev": 1.0
+        },
+        "always_frontier": {
+          "accuracy": 0.8333333333333334,
+          "cost_usd": 0.03922732551801931,
+          "share_jev": 0.0
+        },
+        "oracle": {
+          "accuracy": 0.8333333333333334,
+          "cost_usd": 6.732551801930337e-05,
+          "share_jev": 1.0
+        },
+        "family_lookup": {
+          "accuracy": 0.8333333333333334,
+          "cost_usd": 0.03922732551801931,
+          "share_jev": 0.0
+        },
+        "length_only": {
+          "accuracy": 0.8333333333333334,
+          "cost_usd": 0.03922732551801931,
+          "share_jev": 0.0
+        },
+        "feature_rule": {
+          "accuracy": 0.8333333333333334,
+          "cost_usd": 0.03922732551801931,
+          "share_jev": 0.0
+        },
+        "feature_rule+conf": {
+          "accuracy": 0.8333333333333334,
+          "cost_usd": 0.03922732551801931,
+          "share_jev": 0.0
+        },
+        "confidence_gate": {
+          "accuracy": 0.8333333333333334,
+          "cost_usd": 0.028087325518019304,
+          "share_jev": 0.3333333333333333,
+          "threshold": 0.9199999999999999
+        }
+      },
+      "banking77": {
+        "always_jev": {
+          "accuracy": 1.0,
+          "cost_usd": 9.12636717707048e-05,
+          "share_jev": 1.0
+        },
+        "always_frontier": {
+          "accuracy": 1.0,
+          "cost_usd": 0.0358712636717707,
+          "share_jev": 0.0
+        },
+        "oracle": {
+          "accuracy": 1.0,
+          "cost_usd": 9.12636717707048e-05,
+          "share_jev": 1.0
+        },
+        "family_lookup": {
+          "accuracy": 1.0,
+          "cost_usd": 0.0358712636717707,
+          "share_jev": 0.0
+        },
+        "length_only": {
+          "accuracy": 1.0,
+          "cost_usd": 0.006741263671770704,
+          "share_jev": 0.8333333333333334
+        },
+        "feature_rule": {
+          "accuracy": 1.0,
+          "cost_usd": 9.12636717707048e-05,
+          "share_jev": 1.0
+        },
+        "feature_rule+conf": {
+          "accuracy": 1.0,
+          "cost_usd": 9.12636717707048e-05,
+          "share_jev": 1.0
+        },
+        "confidence_gate": {
+          "accuracy": 1.0,
+          "cost_usd": 0.0059212636717707046,
+          "share_jev": 0.8333333333333334,
+          "threshold": 0.9199999999999999
+        }
+      },
+      "controlled": {
+        "always_jev": {
+          "accuracy": 0.4791666666666667,
+          "cost_usd": 0.0007315052928564708,
+          "share_jev": 1.0
+        },
+        "always_frontier": {
+          "accuracy": 1.0,
+          "cost_usd": 0.3787315052928565,
+          "share_jev": 0.0
+        },
+        "oracle": {
+          "accuracy": 1.0,
+          "cost_usd": 0.20663150529285648,
+          "share_jev": 0.4791666666666667
+        },
+        "family_lookup": {
+          "accuracy": 1.0,
+          "cost_usd": 0.3787315052928565,
+          "share_jev": 0.0
+        },
+        "length_only": {
+          "accuracy": 0.4791666666666667,
+          "cost_usd": 0.0007315052928564708,
+          "share_jev": 1.0
+        },
+        "feature_rule": {
+          "accuracy": 0.4791666666666667,
+          "cost_usd": 0.0007315052928564708,
+          "share_jev": 1.0
+        },
+        "feature_rule+conf": {
+          "accuracy": 0.4791666666666667,
+          "cost_usd": 0.0007315052928564708,
+          "share_jev": 1.0
+        },
+        "confidence_gate": {
+          "accuracy": 0.4791666666666667,
+          "cost_usd": 0.0007315052928564708,
+          "share_jev": 1.0,
+          "threshold": 0.3
+        }
+      },
+      "folio": {
+        "always_jev": {
+          "accuracy": 0.6666666666666666,
+          "cost_usd": 6.460719461740356e-05,
+          "share_jev": 1.0
+        },
+        "always_frontier": {
+          "accuracy": 0.6666666666666666,
+          "cost_usd": 0.07378460719461741,
+          "share_jev": 0.0
+        },
+        "oracle": {
+          "accuracy": 0.8333333333333334,
+          "cost_usd": 0.0053146071946174045,
+          "share_jev": 0.8333333333333334
+        },
+        "family_lookup": {
+          "accuracy": 0.6666666666666666,
+          "cost_usd": 0.07378460719461741,
+          "share_jev": 0.0
+        },
+        "length_only": {
+          "accuracy": 0.6666666666666666,
+          "cost_usd": 0.07378460719461741,
+          "share_jev": 0.0
+        },
+        "feature_rule": {
+          "accuracy": 0.6666666666666666,
+          "cost_usd": 0.07378460719461741,
+          "share_jev": 0.0
+        },
+        "feature_rule+conf": {
+          "accuracy": 0.6666666666666666,
+          "cost_usd": 0.07378460719461741,
+          "share_jev": 0.0
+        },
+        "confidence_gate": {
+          "accuracy": 0.6666666666666666,
+          "cost_usd": 0.06268460719461741,
+          "share_jev": 0.3333333333333333,
+          "threshold": 0.9199999999999999
+        }
+      },
+      "judge_practice": {
+        "always_jev": {
+          "accuracy": 1.0,
+          "cost_usd": 6.577387244679913e-05,
+          "share_jev": 1.0
+        },
+        "always_frontier": {
+          "accuracy": 1.0,
+          "cost_usd": 0.0299057738724468,
+          "share_jev": 0.0
+        },
+        "oracle": {
+          "accuracy": 1.0,
+          "cost_usd": 6.577387244679913e-05,
+          "share_jev": 1.0
+        },
+        "family_lookup": {
+          "accuracy": 1.0,
+          "cost_usd": 0.0299057738724468,
+          "share_jev": 0.0
+        },
+        "length_only": {
+          "accuracy": 1.0,
+          "cost_usd": 0.0299057738724468,
+          "share_jev": 0.0
+        },
+        "feature_rule": {
+          "accuracy": 1.0,
+          "cost_usd": 0.0197257738724468,
+          "share_jev": 0.3333333333333333
+        },
+        "feature_rule+conf": {
+          "accuracy": 1.0,
+          "cost_usd": 0.0146357738724468,
+          "share_jev": 0.5
+        },
+        "confidence_gate": {
+          "accuracy": 1.0,
+          "cost_usd": 0.0101757738724468,
+          "share_jev": 0.6666666666666666,
+          "threshold": 0.9199999999999999
+        }
+      }
+    },
+    "unseen_template_T2": null,
+    "n": 72
+  }
+}

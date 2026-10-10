@@ -18,10 +18,14 @@ case "$1" in
   info) runpodctl ssh info "$(pod_id)";;
   ssh) read -r IP PORT < <(ssh_target); ssh -i $KEY -o StrictHostKeyChecking=accept-new -p "$PORT" root@"$IP" "${@:2}";;
   sync)
+    # push CODE ONLY; never --delete generated data, results, or manifests on the pod
     read -r IP PORT < <(ssh_target)
-    rsync -rlptz --no-owner --no-group --delete --exclude __pycache__ --exclude .pytest_cache -e "ssh -i $KEY -o StrictHostKeyChecking=accept-new -p $PORT" \
-      --exclude .venv --exclude .git --exclude 'results/cache' --exclude 'data/raw' --exclude 'runpod/.pod*' \
-      ./ root@"$IP":/workspace/jev/;;
+    for d in src tests runpod research; do
+      rsync -rlptz --no-owner --no-group --delete --exclude __pycache__ --exclude '.pod*' \
+        -e "ssh -i $KEY -o StrictHostKeyChecking=accept-new -p $PORT" ./$d/ root@"$IP":/workspace/jev/$d/
+    done
+    rsync -rlptz --no-owner --no-group -e "ssh -i $KEY -p $PORT" ./*.md pyproject.toml manifests/rate_card.json manifests/models_manifest.json root@"$IP":/workspace/jev/ 
+    ssh -i $KEY -p "$PORT" root@"$IP" 'mv -f /workspace/jev/rate_card.json /workspace/jev/models_manifest.json /workspace/jev/manifests/';;
   pull)
     read -r IP PORT < <(ssh_target)
     rsync -rlptz -e "ssh -i $KEY -p $PORT" root@"$IP":/workspace/jev/results/ ./results/

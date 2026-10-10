@@ -1,0 +1,502 @@
+{
+  "astra-high": {
+    "depth5_vs_1": {
+      "did": -0.3333333333333333,
+      "lo": -0.6666666666666667,
+      "hi": -0.08333333333333331,
+      "jev_change": -0.3333333333333333,
+      "frontier_change": 0.0,
+      "clusters": 6
+    },
+    "depth3_vs_1": {
+      "did": -0.24999999999999994,
+      "lo": -0.8333333333333334,
+      "hi": 0.4166666666666667,
+      "jev_change": -0.24999999999999994,
+      "frontier_change": 0.0,
+      "clusters": 6
+    },
+    "irrelevant8_vs_0": {
+      "did": -0.05555555555555558,
+      "lo": -0.22222222222222227,
+      "hi": 0.11111111111111116,
+      "jev_change": -0.05555555555555558,
+      "frontier_change": 0.0,
+      "clusters": 6
+    }
+  },
+  "fable-high": {
+    "depth5_vs_1": {
+      "did": -0.3333333333333333,
+      "lo": -0.6666666666666667,
+      "hi": -0.08333333333333331,
+      "jev_change": -0.3333333333333333,
+      "frontier_change": 0.0,
+      "clusters": 6
+    },
+    "depth3_vs_1": {
+      "did": -0.24999999999999994,
+      "lo": -0.8333333333333334,
+      "hi": 0.4166666666666667,
+      "jev_change": -0.24999999999999994,
+      "frontier_change": 0.0,
+      "clusters": 6
+    },
+    "irrelevant8_vs_0": {
+      "did": -0.05555555555555558,
+      "lo": -0.22222222222222227,
+      "hi": 0.11111111111111116,
+      "jev_change": -0.05555555555555558,
+      "frontier_change": 0.0,
+      "clusters": 6
+    }
+  },
+  "jev9b-s2": {
+    "depth5_vs_1": {
+      "did": -0.3333333333333333,
+      "lo": -0.6666666666666667,
+      "hi": -0.08333333333333331,
+      "jev_change": -0.3333333333333333,
+      "frontier_change": 0.0,
+      "clusters": 6
+    },
+    "depth3_vs_1": {
+      "did": -0.24999999999999994,
+      "lo": -0.8333333333333334,
+      "hi": 0.4166666666666667,
+      "jev_change": -0.24999999999999994,
+      "frontier_change": 0.0,
+      "clusters": 6
+    },
+    "irrelevant8_vs_0": {
+      "did": -0.05555555555555558,
+      "lo": -0.22222222222222227,
+      "hi": 0.11111111111111116,
+      "jev_change": -0.05555555555555558,
+      "frontier_change": 0.0,
+      "clusters": 6
+    }
+  },
+  "cells": [
+    {
+      "system": "astra-high",
+      "m_depth": 1.0,
+      "m_irrelevant": 0.0,
+      "mean": 1.0,
+      "count": 6
+    },
+    {
+      "system": "astra-high",
+      "m_depth": 1.0,
+      "m_irrelevant": 8.0,
+      "mean": 1.0,
+      "count": 6
+    },
+    {
+      "system": "astra-high",
+      "m_depth": 3.0,
+      "m_irrelevant": 0.0,
+      "mean": 1.0,
+      "count": 6
+    },
+    {
+      "system": "astra-high",
+      "m_depth": 3.0,
+      "m_irrelevant": 8.0,
+      "mean": 1.0,
+      "count": 6
+    },
+    {
+      "system": "astra-high",
+      "m_depth": 5.0,
+      "m_irrelevant": 0.0,
+      "mean": 1.0,
+      "count": 6
+    },
+    {
+      "system": "astra-high",
+      "m_depth": 5.0,
+      "m_irrelevant": 8.0,
+      "mean": 1.0,
+      "count": 6
+    },
+    {
+      "system": "fable-high",
+      "m_depth": 1.0,
+      "m_irrelevant": 0.0,
+      "mean": 1.0,
+      "count": 6
+    },
+    {
+      "system": "fable-high",
+      "m_depth": 1.0,
+      "m_irrelevant": 8.0,
+      "mean": 1.0,
+      "count": 6
+    },
+    {
+      "system": "fable-high",
+      "m_depth": 3.0,
+      "m_irrelevant": 0.0,
+      "mean": 1.0,
+      "count": 6
+    },
+    {
+      "system": "fable-high",
+      "m_depth": 3.0,
+      "m_irrelevant": 8.0,
+      "mean": 1.0,
+      "count": 6
+    },
+    {
+      "system": "fable-high",
+      "m_depth": 5.0,
+      "m_irrelevant": 0.0,
+      "mean": 1.0,
+      "count": 6
+    },
+    {
+      "system": "fable-high",
+      "m_depth": 5.0,
+      "m_irrelevant": 8.0,
+      "mean": 1.0,
+      "count": 6
+    },
+    {
+      "system": "jev9b-s1",
+      "m_depth": 1.0,
+      "m_irrelevant": 0.0,
+      "mean": 0.6666666666666666,
+      "count": 6
+    },
+    {
+      "system": "jev9b-s1",
+      "m_depth": 1.0,
+      "m_irrelevant": 8.0,
+      "mean": 0.6666666666666666,
+      "count": 6
+    },
+    {
+      "system": "jev9b-s1",
+      "m_depth": 3.0,
+      "m_irrelevant": 0.0,
+      "mean": 0.5,
+      "count": 6
+    },
+    {
+      "system": "jev9b-s1",
+      "m_depth": 3.0,
+      "m_irrelevant": 8.0,
+      "mean": 0.3333333333333333,
+      "count": 6
+    },
+    {
+      "system": "jev9b-s1",
+      "m_depth": 5.0,
+      "m_irrelevant": 0.0,
+      "mean": 0.3333333333333333,
+      "count": 6
+    },
+    {
+      "system": "jev9b-s1",
+      "m_depth": 5.0,
+      "m_irrelevant": 8.0,
+      "mean": 0.3333333333333333,
+      "count": 6
+    },
+    {
+      "system": "jev9b-s2",
+      "m_depth": 1.0,
+      "m_irrelevant": 0.0,
+      "mean": 1.0,
+      "count": 6
+    },
+    {
+      "system": "jev9b-s2",
+      "m_depth": 1.0,
+      "m_irrelevant": 8.0,
+      "mean": 1.0,
+      "count": 6
+    },
+    {
+      "system": "jev9b-s2",
+      "m_depth": 3.0,
+      "m_irrelevant": 0.0,
+      "mean": 1.0,
+      "count": 6
+    },
+    {
+      "system": "jev9b-s2",
+      "m_depth": 3.0,
+      "m_irrelevant": 8.0,
+      "mean": 1.0,
+      "count": 6
+    },
+    {
+      "system": "jev9b-s2",
+      "m_depth": 5.0,
+      "m_irrelevant": 0.0,
+      "mean": 1.0,
+      "count": 6
+    },
+    {
+      "system": "jev9b-s2",
+      "m_depth": 5.0,
+      "m_irrelevant": 8.0,
+      "mean": 1.0,
+      "count": 6
+    }
+  ],
+  "by_label": [
+    {
+      "system": "astra-high",
+      "m_depth": 1.0,
+      "gold_label": "False",
+      "correct": 1.0
+    },
+    {
+      "system": "astra-high",
+      "m_depth": 1.0,
+      "gold_label": "True",
+      "correct": 1.0
+    },
+    {
+      "system": "astra-high",
+      "m_depth": 1.0,
+      "gold_label": "Unknown",
+      "correct": 1.0
+    },
+    {
+      "system": "astra-high",
+      "m_depth": 3.0,
+      "gold_label": "False",
+      "correct": 1.0
+    },
+    {
+      "system": "astra-high",
+      "m_depth": 3.0,
+      "gold_label": "True",
+      "correct": 1.0
+    },
+    {
+      "system": "astra-high",
+      "m_depth": 3.0,
+      "gold_label": "Unknown",
+      "correct": 1.0
+    },
+    {
+      "system": "astra-high",
+      "m_depth": 5.0,
+      "gold_label": "False",
+      "correct": 1.0
+    },
+    {
+      "system": "astra-high",
+      "m_depth": 5.0,
+      "gold_label": "True",
+      "correct": 1.0
+    },
+    {
+      "system": "astra-high",
+      "m_depth": 5.0,
+      "gold_label": "Unknown",
+      "correct": 1.0
+    },
+    {
+      "system": "fable-high",
+      "m_depth": 1.0,
+      "gold_label": "False",
+      "correct": 1.0
+    },
+    {
+      "system": "fable-high",
+      "m_depth": 1.0,
+      "gold_label": "True",
+      "correct": 1.0
+    },
+    {
+      "system": "fable-high",
+      "m_depth": 1.0,
+      "gold_label": "Unknown",
+      "correct": 1.0
+    },
+    {
+      "system": "fable-high",
+      "m_depth": 3.0,
+      "gold_label": "False",
+      "correct": 1.0
+    },
+    {
+      "system": "fable-high",
+      "m_depth": 3.0,
+      "gold_label": "True",
+      "correct": 1.0
+    },
+    {
+      "system": "fable-high",
+      "m_depth": 3.0,
+      "gold_label": "Unknown",
+      "correct": 1.0
+    },
+    {
+      "system": "fable-high",
+      "m_depth": 5.0,
+      "gold_label": "False",
+      "correct": 1.0
+    },
+    {
+      "system": "fable-high",
+      "m_depth": 5.0,
+      "gold_label": "True",
+      "correct": 1.0
+    },
+    {
+      "system": "fable-high",
+      "m_depth": 5.0,
+      "gold_label": "Unknown",
+      "correct": 1.0
+    },
+    {
+      "system": "jev9b-s1",
+      "m_depth": 1.0,
+      "gold_label": "False",
+      "correct": 1.0
+    },
+    {
+      "system": "jev9b-s1",
+      "m_depth": 1.0,
+      "gold_label": "True",
+      "correct": 1.0
+    },
+    {
+      "system": "jev9b-s1",
+      "m_depth": 1.0,
+      "gold_label": "Unknown",
+      "correct": 0.0
+    },
+    {
+      "system": "jev9b-s1",
+      "m_depth": 3.0,
+      "gold_label": "False",
+      "correct": 0.5
+    },
+    {
+      "system": "jev9b-s1",
+      "m_depth": 3.0,
+      "gold_label": "True",
+      "correct": 0.0
+    },
+    {
+      "system": "jev9b-s1",
+      "m_depth": 3.0,
+      "gold_label": "Unknown",
+      "correct": 0.75
+    },
+    {
+      "system": "jev9b-s1",
+      "m_depth": 5.0,
+      "gold_label": "False",
+      "correct": 0.75
+    },
+    {
+      "system": "jev9b-s1",
+      "m_depth": 5.0,
+      "gold_label": "True",
+      "correct": 0.25
+    },
+    {
+      "system": "jev9b-s1",
+      "m_depth": 5.0,
+      "gold_label": "Unknown",
+      "correct": 0.0
+    },
+    {
+      "system": "jev9b-s2",
+      "m_depth": 1.0,
+      "gold_label": "False",
+      "correct": 1.0
+    },
+    {
+      "system": "jev9b-s2",
+      "m_depth": 1.0,
+      "gold_label": "True",
+      "correct": 1.0
+    },
+    {
+      "system": "jev9b-s2",
+      "m_depth": 1.0,
+      "gold_label": "Unknown",
+      "correct": 1.0
+    },
+    {
+      "system": "jev9b-s2",
+      "m_depth": 3.0,
+      "gold_label": "False",
+      "correct": 1.0
+    },
+    {
+      "system": "jev9b-s2",
+      "m_depth": 3.0,
+      "gold_label": "True",
+      "correct": 1.0
+    },
+    {
+      "system": "jev9b-s2",
+      "m_depth": 3.0,
+      "gold_label": "Unknown",
+      "correct": 1.0
+    },
+    {
+      "system": "jev9b-s2",
+      "m_depth": 5.0,
+      "gold_label": "False",
+      "correct": 1.0
+    },
+    {
+      "system": "jev9b-s2",
+      "m_depth": 5.0,
+      "gold_label": "True",
+      "correct": 1.0
+    },
+    {
+      "system": "jev9b-s2",
+      "m_depth": 5.0,
+      "gold_label": "Unknown",
+      "correct": 1.0
+    }
+  ],
+  "controls": {
+    "astra-high": {
+      "changing_accuracy": 1.0,
+      "changing_follows_change": 1.0,
+      "both_correct_change": 1.0,
+      "preserving_accuracy": 1.0,
+      "preserving_invariant": 1.0,
+      "n": 6
+    },
+    "fable-high": {
+      "changing_accuracy": 1.0,
+      "changing_follows_change": 1.0,
+      "both_correct_change": 1.0,
+      "preserving_accuracy": 1.0,
+      "preserving_invariant": 1.0,
+      "n": 6
+    },
+    "jev9b-s1": {
+      "changing_accuracy": 0.5,
+      "changing_follows_change": 0.3333333333333333,
+      "both_correct_change": 0.0,
+      "preserving_accuracy": 0.5,
+      "preserving_invariant": 0.6666666666666666,
+      "n": 6
+    },
+    "jev9b-s2": {
+      "changing_accuracy": 1.0,
+      "changing_follows_change": 1.0,
+      "both_correct_change": 1.0,
+      "preserving_accuracy": 1.0,
+      "preserving_invariant": 1.0,
+      "n": 6
+    }
+  }
+}
