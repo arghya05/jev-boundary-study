@@ -1,5 +1,9 @@
 # jev-judge — cheap, calibrated LLM evaluation with a one-pass decision model
 
+[![Tests](https://github.com/arghya05/jev-boundary-study/actions/workflows/test.yml/badge.svg)](https://github.com/arghya05/jev-boundary-study/actions/workflows/test.yml)
+[![Release](https://img.shields.io/github/v/release/arghya05/jev-boundary-study)](https://github.com/arghya05/jev-boundary-study/releases)
+![License](https://img.shields.io/badge/license-Apache--2.0-blue)
+
 > 📄 **Research paper:** [*When Can a Decision Model Replace a Reasoning LLM? Controlled, Cost-Accounted Evidence for a Distilled One-Pass Judge*](research-paper/JevBoundary_Paper.pdf) (preprint, NeurIPS 2026 style) · [LaTeX source](research-paper/) · [preregistration](research/PREREGISTRATION.md) · [item-level results](results/final_item_level.csv)
 
 **jev-judge** lets you use **JEV-9B** — an open-weights, one-forward-pass decision model (a community
@@ -33,7 +37,8 @@ Whole study: **$65.04** in API calls plus **$3.66** of A40 GPU time.
 ## Quickstart
 
 ```bash
-pip install "git+https://github.com/arghya05/jev-boundary-study" "vllm==0.31.0"
+pip install "https://github.com/arghya05/jev-boundary-study/releases/download/v0.1.0/jev_judge-0.1.0-py3-none-any.whl" "vllm==0.31.0"
+# (PyPI: `pip install jev-judge` once the first PyPI release is live)
 jev-judge serve --model-dir JEV-9B                    # downloads autotrust/JEV-9B@b63f651 and starts vLLM (GPU >= 24 GB)
 jev-judge judge --input examples/judge_pairwise.jsonl --mode pairwise --out judged/
 ```
