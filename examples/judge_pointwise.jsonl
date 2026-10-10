@@ -1,0 +1,4 @@
+{"id": "1", "question": "What is 17 * 3?", "response": "17 * 3 = 51.", "label": true}
+{"id": "2", "question": "What is the capital of Australia?", "response": "Sydney is the capital of Australia.", "label": false}
+{"id": "3", "question": "Name a prime number between 20 and 30.", "response": "23 is prime and lies between 20 and 30.", "label": true}
+{"id": "4", "question": "Convert 2 kilometres to metres.", "response": "2 km = 200 m.", "label": false}

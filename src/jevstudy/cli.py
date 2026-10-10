@@ -238,6 +238,19 @@ def cmd_amendments(a):
     json.dump(m, open(MANI / "datasets_manifest.json", "w"), indent=2)
 
 
+def cmd_judge_track(a):
+    """Amendment A3: LLM-output evaluation track (RewardBench filtered, HaluEval-QA sealed sample)."""
+    m = json.load(open(MANI / "datasets_manifest.json"))
+    for name, fn in (("rewardbench", ds.load_rewardbench), ("halueval", ds.load_halueval_sample)):
+        pairs, srcs = fn(RAW)
+        print(_save_panel(name, pairs))
+        m["sources"] = [x for x in m["sources"] if x["name"] not in {y["name"] for y in srcs}] + srcs
+    m["hf_dataset_revisions"].update({"allenai/reward-bench": "168d848cdbbea9764fae4a544dc9ca1e6cca4931",
+                                      "pminervini/HaluEval": "12a856119f03975a94509091e8cada3e6be6ead7"})
+    m["licenses"].update({"rewardbench": "ODC-BY", "halueval": "Apache-2.0"})
+    json.dump(m, open(MANI / "datasets_manifest.json", "w"), indent=2)
+
+
 def cmd_restore(a):
     """Rebuild results/raw and the spend ledger from the response cache.
 
@@ -258,6 +271,49 @@ def cmd_restore(a):
                                 "cost_usd": (338 * 10 + out_tok * 50) / 1e6, "usage": {"input_tokens": 338, "output_tokens": out_tok},
                                 "note": "effort configuration probe on ctl-9001-d5-c8, outside the runner"}) + "\n")
     print(f"restored {len(rows)} results; ledger", Ledger(RES / "budget_ledger.jsonl").summary())
+
+
+def cmd_judge(a):
+    """Use JEV-9B as an evaluator of model outputs (see jevstudy.evaluate for formats)."""
+    from . import evaluate
+    from .toolkit import JevClient
+    jev = JevClient(os.environ.get("VLLM_URL", "http://127.0.0.1:8000"))
+    esc = None
+    if a.escalate:
+        esc = _adapters([a.escalate], 0)[0]
+    rows = read_jsonl(a.input)
+    out, summary = evaluate.judge(rows, a.mode, jev, escalate=esc, threshold=a.threshold, criterion=a.criterion)
+    Path(a.out).mkdir(parents=True, exist_ok=True)
+    write_jsonl(Path(a.out) / "judgements.jsonl", out)
+    (Path(a.out) / "summary.json").write_text(json.dumps(summary, indent=2, default=float))
+    print(json.dumps(summary, indent=2, default=float))
+
+
+def cmd_custom(a):
+    """Fair comparison on your own labelled tasks: JEV-9B vs frontier on identical canonical tasks."""
+    from . import evaluate
+    pairs = evaluate.custom_tasks(Path(a.tasks))
+    tasks = [t for t, _ in pairs]
+    out = Path(a.out)
+    out.mkdir(parents=True, exist_ok=True)
+    ledger = Ledger(out / "ledger.jsonl", a.stage_forecast)
+    adapters = _adapters(a.systems.split(","), a.gpu_rate)
+    results = run_sync(tasks, adapters, out / "results.jsonl", ledger, Cache(out / "cache"), concurrency=a.concurrency)
+    rep = evaluate.custom_report(pairs, results)
+    print(evaluate.write_report(rep, out).read_text())
+
+
+def cmd_serve(a):
+    """Download JEV-9B at the pinned revision and start vLLM (System 1 + System 2) on this GPU host."""
+    import subprocess
+    from huggingface_hub import snapshot_download
+    path = a.model_dir if a.dry_run else snapshot_download("autotrust/JEV-9B", revision=JEV_REVISION, local_dir=a.model_dir)
+    cmd = ["vllm", "serve", path, "--served-model-name", "autotrust/JEV-9B", "--enable-lora", "--max-lora-rank", "32",
+           "--lora-modules", f"jev-decision={path}/adapter_vllm", "--logprobs-mode", "processed_logprobs",
+           "--max-model-len", str(a.max_model_len), "--host", a.host, "--port", str(a.port)]
+    print(" ".join(cmd))
+    if not a.dry_run:
+        subprocess.run(cmd, check=True)
 
 
 def cmd_env(a):
@@ -281,6 +337,7 @@ def main(argv=None):
     sp.add_parser("restore").set_defaults(fn=cmd_restore)
     sp.add_parser("variants").set_defaults(fn=cmd_variants)
     sp.add_parser("amendments").set_defaults(fn=cmd_amendments)
+    sp.add_parser("judge-track").set_defaults(fn=cmd_judge_track)
     for name, fn in (("run", cmd_run), ("batch-submit", cmd_batch_submit), ("batch-collect", cmd_batch_collect)):
         r = sp.add_parser(name)
         r.add_argument("--panel", required=True)
@@ -295,6 +352,29 @@ def main(argv=None):
         r.add_argument("--stage-forecast", type=float, default=None,
                        help="review trigger: stop new paid calls if spent+committed would exceed this")
         r.set_defaults(fn=fn)
+    jd = sp.add_parser("judge", help="evaluate model outputs with JEV-9B")
+    jd.add_argument("--input", required=True)
+    jd.add_argument("--mode", choices=["pointwise", "pairwise", "score"], default="pointwise")
+    jd.add_argument("--escalate", choices=["astra", "fable"], help="frontier for items below --threshold")
+    jd.add_argument("--threshold", type=float, default=0.9)
+    jd.add_argument("--criterion", help="custom question for the judge, e.g. a rubric line")
+    jd.add_argument("--out", default="judge_out")
+    jd.set_defaults(fn=cmd_judge)
+    cu = sp.add_parser("custom", help="JEV-9B vs frontier on your own labelled tasks")
+    cu.add_argument("--tasks", required=True)
+    cu.add_argument("--systems", default="jev-s1,astra")
+    cu.add_argument("--out", default="custom_out")
+    cu.add_argument("--concurrency", type=int, default=8)
+    cu.add_argument("--gpu-rate", type=float, default=float(os.environ.get("GPU_USD_PER_HR", "0")))
+    cu.add_argument("--stage-forecast", type=float, default=None, help="stop if spend would exceed this (USD)")
+    cu.set_defaults(fn=cmd_custom)
+    sv = sp.add_parser("serve", help="download JEV-9B and start vLLM")
+    sv.add_argument("--model-dir", default="JEV-9B")
+    sv.add_argument("--max-model-len", type=int, default=32768)
+    sv.add_argument("--host", default="127.0.0.1")
+    sv.add_argument("--port", type=int, default=8000)
+    sv.add_argument("--dry-run", action="store_true")
+    sv.set_defaults(fn=cmd_serve)
     an = sp.add_parser("analyze")
     an.add_argument("--panels", required=True)
     an.add_argument("--out", default="analysis")
