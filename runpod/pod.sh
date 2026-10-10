@@ -11,22 +11,22 @@ ssh_target() {
 }
 case "$1" in
   create)
-    runpodctl create pod --name jevstudy --gpuType "$GPU" --gpuCount 1 --secureCloud --imageName "$IMAGE" \
-      --containerDiskSize 60 --volumeSize 80 --volumePath /workspace --ports 22/tcp --ports 8888/http --startSSH \
-      --mem 32 --vcpu 8 -o json | tee runpod/.pod_create.json | python3 -c 'import sys,json; print(json.load(sys.stdin)["id"])' > "$STATE"
+    runpodctl pod create --name jevstudy --gpu-id "$GPU" --gpu-count 1 --cloud-type SECURE --image "$IMAGE" \
+      --container-disk-in-gb 60 --ports '8888/http,22/tcp' --wait -o json > runpod/.pod_create.json
+    grep -o '"id": *"[a-z0-9]*"' runpod/.pod_create.json | head -1 | sed 's/.*"\([a-z0-9]*\)"$/\1/' > "$STATE"
     echo "pod $(pod_id)";;
   info) runpodctl ssh info "$(pod_id)";;
   ssh) read -r IP PORT < <(ssh_target); ssh -i $KEY -o StrictHostKeyChecking=accept-new -p "$PORT" root@"$IP" "${@:2}";;
   sync)
     read -r IP PORT < <(ssh_target)
-    rsync -az --delete -e "ssh -i $KEY -o StrictHostKeyChecking=accept-new -p $PORT" \
+    rsync -rlptz --no-owner --no-group --delete --exclude __pycache__ --exclude .pytest_cache -e "ssh -i $KEY -o StrictHostKeyChecking=accept-new -p $PORT" \
       --exclude .venv --exclude .git --exclude 'results/cache' --exclude 'data/raw' --exclude 'runpod/.pod*' \
       ./ root@"$IP":/workspace/jev/;;
   pull)
     read -r IP PORT < <(ssh_target)
-    rsync -az -e "ssh -i $KEY -p $PORT" root@"$IP":/workspace/jev/results/ ./results/
-    rsync -az -e "ssh -i $KEY -p $PORT" root@"$IP":/workspace/jev/manifests/ ./manifests/
-    rsync -az -e "ssh -i $KEY -p $PORT" --include '*/' --include '*.jsonl' --exclude '*' root@"$IP":/workspace/jev/data/panels/ ./data/panels/;;
+    rsync -rlptz -e "ssh -i $KEY -p $PORT" root@"$IP":/workspace/jev/results/ ./results/
+    rsync -rlptz -e "ssh -i $KEY -p $PORT" root@"$IP":/workspace/jev/manifests/ ./manifests/
+    rsync -rlptz -e "ssh -i $KEY -p $PORT" --include '*/' --include '*.jsonl' --exclude '*' root@"$IP":/workspace/jev/data/panels/ ./data/panels/;;
   secrets)
     # write API keys to the pod (mode 600) without echoing them
     read -r IP PORT < <(ssh_target)

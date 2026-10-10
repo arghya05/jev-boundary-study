@@ -1,0 +1,21 @@
+{
+  "checked_utc": "2026-10-10",
+  "systems": {
+    "jev9b-s1": {"model": "autotrust/JEV-9B", "revision": "b63f651ce8ed64481d3f5e73ecdb05f740042f01",
+                 "role": "decision model under study (community distillation of TypeSafe Jev 1.13; NOT official Jev)",
+                 "path": "System 1: LoRA 'jev-decision' + 24-slot head re-expressed as lm_head LoRA; one prefill pass; choice kind; head bias + per-kind temperature applied client-side",
+                 "serving": "vLLM 0.31.0 on RunPod NVIDIA A40 48GB, --max-model-len 32768, no truncation",
+                 "constraints": ["choice supports 2-16 options", "trained on inputs <=1,024 tokens; longer inputs are out of training distribution"]},
+    "jev9b-s2": {"model": "autotrust/JEV-9B (base Qwen3.5-9B, unmodified)", "revision": "b63f651ce8ed64481d3f5e73ecdb05f740042f01",
+                 "role": "supplementary arm: same weights with thinking enabled",
+                 "config": {"enable_thinking": true, "temperature": 0.6, "top_p": 0.95, "max_tokens": 16000}},
+    "astra-high": {"model": "gpt-6-astra", "api": "OpenAI Responses", "reasoning_effort": "high", "max_output_tokens": 32000,
+                   "output": "strict json_schema {answer: enum[choice ids]}", "tools": "none", "store": false,
+                   "availability_check": "GET /v1/models listed gpt-6-astra (2026-10-10)"},
+    "fable-high": {"model": "claude-fable-5-1", "api": "Anthropic Messages", "thinking": "adaptive (always on; default)",
+                   "effort": "high", "max_tokens": 32000, "output": "output_config.format json_schema {answer: enum}",
+                   "tools": "none", "refusal_fallback": "disabled (would substitute another model)",
+                   "availability_check": "GET /v1/models listed claude-fable-5-1 (2026-10-10)"}
+  },
+  "not_used": {"official TypeSafe jev-1.13.0": "no API access; weights not public"}
+}
