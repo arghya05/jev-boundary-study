@@ -19,17 +19,18 @@ import matplotlib.pyplot as plt  # noqa: E402
 from . import analysis, router, stats  # noqa: E402
 from .canonical import LETTERS, Task, read_jsonl  # noqa: E402
 
-SYS = ["jev9b-s1", "jev9b-s2", "astra-high", "fable-high"]
-LABEL = {"jev9b-s1": "JEV-9B S1", "jev9b-s2": "JEV-9B S2", "astra-high": "Astra (high)", "fable-high": "Fable (high)",
+SYS = ["jev9b-s1", "jev9b-s2", "jev9b-h", "astra-high", "fable-high"]
+LABEL = {"jev9b-s1": "JEV-9B S1", "jev9b-s2": "JEV-9B S2", "jev9b-h": "JEV-H harness", "astra-high": "Astra (high)", "fable-high": "Fable (high)",
          "astra-max": "Astra (max)", "fable-max": "Fable (max)"}
-COLORS = {"jev9b-s1": "#2a6f97", "jev9b-s2": "#61a5c2", "astra-high": "#c1121f", "fable-high": "#e09f3e",
+COLORS = {"jev9b-s1": "#2a6f97", "jev9b-s2": "#61a5c2", "jev9b-h": "#2d6a4f", "astra-high": "#c1121f", "fable-high": "#e09f3e",
           "astra-max": "#780000", "fable-max": "#9c6644"}
 PANELS = [("final", "folio", "FOLIO"), ("final", "anli", "ANLI r3"), ("controlled_final", "controlled", "Controlled"),
           ("final_gpt", "judgebench", "JudgeBench-gpt"), ("final_claude", "judgebench", "JudgeBench-claude"),
-          ("final", "banking77", "Banking77-16")]
+          ("final", "banking77", "Banking77-16"), ("judge_track", "rewardbench", "RewardBench"),
+          ("judge_track", "halueval", "HaluEval-QA")]
 PRIMARY = {"FOLIO", "ANLI r3", "Controlled"}
 ALL_PANELS = ["folio_final", "anli_final", "controlled_final", "judgebench_final", "banking_final",
-              "folio_final_rev", "controlled_final_rev", "controlled_deep", "proofwriter_bridge"]
+              "folio_final_rev", "controlled_final_rev", "controlled_deep", "proofwriter_bridge", "rewardbench", "halueval"]
 HD_JEV = [0.977, 0.877, 0.848, 0.799, 0.719, 0.810]   # Hard-Decisions v0.1.0, official Jev, OWA, depths 0-5
 HD_LUNA = [0.933, 0.778, 0.604, 0.617, 0.446, 0.460]  # GPT-6 Luna, reasoning effort none
 HD_KEV9 = [0.893, 0.738, 0.584, 0.495, 0.386, 0.412]
@@ -85,7 +86,8 @@ def gpu_hours(root: Path) -> dict:
 def main_table(df, out: Path, ghours: dict):
     rows, recs = [], []
     panel_file = {"FOLIO": "folio_final", "ANLI r3": "anli_final", "Controlled": "controlled_final",
-                  "JudgeBench-gpt": "judgebench_final", "JudgeBench-claude": "judgebench_final", "Banking77-16": "banking_final"}
+                  "JudgeBench-gpt": "judgebench_final", "JudgeBench-claude": "judgebench_final", "Banking77-16": "banking_final",
+                  "RewardBench": "rewardbench", "HaluEval-QA": "halueval"}
     for split, fam, name in PANELS:
         sub = panel_df(df, split, fam)
         n_panel = sub.task_id.nunique()
@@ -133,8 +135,9 @@ Panel & System & $n$ & Acc. & 95\% CI & Fail & \$/1k & Out tok. \\
 def paired_table(df, out: Path, main: pd.DataFrame):
     prim = [(s, f, n) for s, f, n in PANELS if n in ("FOLIO", "ANLI r3")]
     sec = [(s, f, n) for s, f, n in PANELS if n in ("JudgeBench-gpt", "JudgeBench-claude", "Banking77-16")]
+    jt = [(s, f, n) for s, f, n in PANELS if n in ("RewardBench", "HaluEval-QA")]
     recs, rows = [], []
-    for fam_list, label in ((prim, "Primary"), (sec, "Secondary")):
+    for fam_list, label in ((prim, "Primary"), (sec, "Secondary"), (jt, "Judge track")):
         m = len(fam_list) * 2
         a = 0.05 / m
         for split, fam, name in fam_list:
@@ -158,7 +161,7 @@ def paired_table(df, out: Path, main: pd.DataFrame):
     body = "\n".join(rows[:-1])
     write(out / "tables" / "paired.tex", rf"""\begin{{table*}}[t]
 \centering\small
-\caption{{Paired comparisons of JEV-9B System~1 with each frontier. $\Delta$ = JEV-9B minus frontier accuracy (points).
+\caption{{Paired comparisons of JEV-9B System~1 with each frontier (judge track: preregistration A3, $\alpha=0.05/4$). $\Delta$ = JEV-9B minus frontier accuracy (points).
 Intervals are Bonferroni-adjusted within family (primary: $\alpha=0.05/4$; secondary: $\alpha=0.05/6$); cluster bootstrap where clusters repeat, Newcombe paired score interval otherwise.
 Discordant = items only JEV-9B / only the frontier got right. Conclusions follow the frozen rule with a 2-point margin.}}
 \label{{tab:paired}}
@@ -175,6 +178,96 @@ Family & Panel & Frontier & Clusters & Discordant & $\Delta$ & Adj.\ CI & Conclu
 
 
 # ------------------------------------------------------------------ controlled panel
+def harness_table(df, out: Path, main: pd.DataFrame):
+    """A4: JEV-H vs each frontier on every panel; Bonferroni over all panel x frontier pairs."""
+    names = [p for p in PANELS if not panel_df(df, p[0], p[1])[lambda d: d.system == "jev9b-h"].empty]
+    m = 2 * len(names)
+    a = 0.05 / max(1, m)
+    rows, recs = [], []
+    for split, fam, name in names:
+        sub = panel_df(df, split, fam)
+        h = sub[sub.system == "jev9b-h"].set_index("task_id")
+        s1 = sub[sub.system == "jev9b-s1"].set_index("task_id")
+        hm = main[(main.panel == name) & (main.system == "jev9b-h")]
+        for fr in ("astra-high", "fable-high"):
+            f = sub[sub.system == fr].set_index("task_id")
+            ids = sorted(set(h.index) & set(f.index))
+            if not ids:
+                continue
+            res = stats.paired_delta([{"cluster": h.cluster[i], "x": int(h.correct[i]), "y": int(f.correct[i])} for i in ids], alpha=a)
+            cf = main[(main.panel == name) & (main.system == fr)].usd_per_1k
+            ch = hm.usd_per_1k
+            cheaper = bool(len(ch) and len(cf) and ch.iloc[0] < cf.iloc[0])
+            concl = stats.classify(res, jev_cheaper=cheaper)
+            recs.append({**res, "panel": name, "frontier": fr, "conclusion": concl, "m": m,
+                         "usd1k_h": float(ch.iloc[0]) if len(ch) else None, "usd1k_f": float(cf.iloc[0]) if len(cf) else None})
+            rows.append(f"{name if fr == 'astra-high' else ''} & {LABEL[fr]} & {pct(res['acc_jev'])} & {pct(res['acc_frontier'])} & "
+                        f"{pct(res['delta'])} & [{pct(res['lo'])}, {pct(res['hi'])}] & {concl} \\\\")
+    write(out / "tables" / "harness.tex", r"""\begin{table*}[t]
+\centering\small
+\caption{JEV-H harness (A4: two option orders, threshold 0.90 fixed a priori, escalation to JEV-9B's own System~2) against each frontier. $\Delta$ = JEV-H minus frontier (points); intervals Bonferroni-adjusted over all """ + str(m) + r""" panel $\times$ frontier pairs.}
+\label{tab:harness}
+\begin{tabularx}{\linewidth}{@{}llrrrcX@{}}
+\toprule
+Panel & Frontier & JEV-H & Frontier & $\Delta$ & Adj.\ CI & Conclusion \\
+\midrule
+""" + "\n".join(rows) + r"""
+\bottomrule
+\end{tabularx}
+\end{table*}
+""")
+    return recs
+
+
+def harness_routes(root: Path) -> dict:
+    p = root / "results" / "raw" / "harness_jevh.jsonl"
+    if not p.exists():
+        return {}
+    out = defaultdict(lambda: defaultdict(int))
+    for r in read_jsonl(p):
+        fam = r["task_id"].split("-")[0]
+        out[fam][r["raw"]["route"]] += 1
+    return {k: dict(v) for k, v in out.items()}
+
+
+def judge_track_tables(df, out: Path):
+    rb = df[(df.split == "judge_track") & (df.family == "rewardbench")]
+    rows, recs = [], []
+    secs = ["Chat", "Chat Hard", "Safety", "Reasoning"]
+    for s in SYS:
+        g = rb[rb.system == s]
+        if g.empty:
+            continue
+        vals = [g[g.m_section == sec].correct.mean() for sec in secs]
+        recs.append({"system": s, **dict(zip(secs, vals)), "overall": g.correct.mean(), "section_mean": float(np.nanmean(vals))})
+        rows.append(f"{LABEL[s]} & " + " & ".join(pct(v) for v in vals) + f" & {pct(np.nanmean(vals))} & {pct(g.correct.mean())} \\\\")
+    hv = df[(df.split == "judge_track") & (df.family == "halueval")]
+    lb = None
+    if not hv.empty:
+        one = hv[hv.system == hv.system.iloc[0]]
+        lb = evaluate_auroc_len(one)
+    write(out / "tables" / "judgetrack.tex", r"""\begin{table}[t]
+\centering\small
+\caption{RewardBench (2{,}985 filtered pairs) accuracy (\%) by official section; ``Score'' is the unweighted section mean, ``All'' the item mean. HaluEval-QA answer-length-only AUROC (trivial baseline): """ + (f"{lb:.3f}" if lb is not None else "--") + r""".}
+\label{tab:judgetrack}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+System & Chat & Chat Hard & Safety & Reasoning & Score & All \\
+\midrule
+""" + "\n".join(rows) + r"""
+\bottomrule
+\end{tabular}
+\end{table}
+""")
+    return {"rewardbench": recs, "halueval_length_auroc": lb}
+
+
+def evaluate_auroc_len(one):
+    from .evaluate import auroc
+    # shorter answers more likely right? use -length as the score for "right"
+    return auroc((-one.m_answer_chars).tolist(), (one.gold_label == "right").astype(int).tolist())
+
+
 def controlled_tables(df, out: Path):
     base = df[(df.split == "controlled_final") & (df.m_condition == "base")]
     cells = base.groupby(["system", "m_depth", "m_irrelevant"]).correct.agg(["mean", "count"]).reset_index()
@@ -409,7 +502,7 @@ Panel & $n$ short/long & JEV-9B S1 & JEV-9B S2 & Astra & Fable \\
 
 # ------------------------------------------------------------------ routing
 def routing_tables(df, tasks, out: Path):
-    splits = ["final", "final_gpt", "final_claude", "controlled_final"]
+    splits = ["final", "final_gpt", "final_claude", "controlled_final", "judge_track"]
     sub = df[df.split.isin(splits) & ((df.m_condition.isna()) | (df.m_condition == "base"))]
     res = analysis.router_evaluation(sub, tasks, splits)
     pols = ["always_jev", "always_frontier", "length_only", "family_lookup", "confidence_gate", "feature_rule", "feature_rule+conf", "oracle"]
@@ -662,6 +755,8 @@ def main():
     length = length_table(df, out)
     routing, routing_detail, _ = routing_tables(df, tasks, out)
     routing_detail_table(routing_detail, out)
+    harness = harness_table(df, out, main_df)
+    judge = judge_track_tables(df, out)
     ledger = cost_ledger_table(root, df, gh, out)
     bridge = bridge_table(df, out)
     operating_points(main_df, out)
@@ -671,7 +766,8 @@ def main():
     summary = {"main": main_df.to_dict("records"), "paired": paired, "did": did, "controls": ctrl,
                "reversal": rev, "effort": eff, "length": length, "routing": routing, "routing_detail": routing_detail,
                "bridge": bridge, "latency": latency, "deep": deep.to_dict("records"), "gpu_hours": gh,
-               "cost": cost_summary(root, df), "ledger": ledger, "n_items": int(df.task_id.nunique()), "n_rows": int(len(df)),
+               "cost": cost_summary(root, df), "ledger": ledger, "harness": harness, "harness_routes": harness_routes(root),
+               "judge_track": judge, "n_items": int(df.task_id.nunique()), "n_rows": int(len(df)),
                "status_counts": df.groupby(["system", "status"]).size().reset_index().to_dict("records")}
     analysis.write_json(summary, root / "results" / "final_summary.json")
     print(json.dumps({k: (v if k in ("paired",) else "...") for k, v in summary.items()}, indent=1, default=str)[:6000])

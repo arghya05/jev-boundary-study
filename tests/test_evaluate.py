@@ -63,3 +63,18 @@ def test_custom_report_and_gate(tmp_path):
     assert gate[0.9]["accuracy"] == 1.0 and 0 < gate[0.9]["share_escalated"] < 1
     assert rep["systems"]["astra-high"]["accuracy"] == 1.0
     assert (evaluate.write_report(rep, tmp_path / "out")).exists()
+
+
+def test_harness_combination_rules():
+    from jevstudy.harness import combine, unreverse
+    assert unreverse({"A": 0.7, "B": 0.2, "C": 0.1}, 3) == {"C": 0.7, "B": 0.2, "A": 0.1}
+    s1 = {"distribution": {"A": 0.95, "B": 0.03, "C": 0.02}, "cost_usd": 0.001}
+    rev = {"distribution": {"A": 0.02, "B": 0.03, "C": 0.95}, "cost_usd": 0.001}   # same answer, reversed letters
+    s2 = {"status": "ok", "answer_id": "B"}
+    r = combine(s1, rev, s2, 3, 0.05)
+    assert r["route"] == "s1" and r["answer_id"] == "A" and abs(r["cost_usd"] - 0.002) < 1e-12
+    rev_disagree = {"distribution": {"A": 0.9, "B": 0.05, "C": 0.05}, "cost_usd": 0.001}  # position bias toward A
+    r = combine(s1, rev_disagree, s2, 3, 0.05)
+    assert r["route"] == "s2" and r["answer_id"] == "B" and abs(r["cost_usd"] - 0.052) < 1e-12
+    r = combine(s1, rev_disagree, {"status": "truncated", "answer_id": None}, 3, 0.05)
+    assert r["route"] == "s1-fallback"

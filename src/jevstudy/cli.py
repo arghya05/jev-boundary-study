@@ -202,23 +202,37 @@ def cmd_forecast(a):
     print(out.groupby("system")[["expected_total", "conservative_total"]].sum().to_string())
 
 
-def cmd_variants(a):
-    """Prespecified robustness panels: option-order reversal and a sealed latency subset."""
-    import random
+def _reverse_panel(name, keep=lambda t: True, out_name=None):
     from .canonical import Gold, LETTERS
-    for name, keep in (("folio_final", lambda t: True), ("controlled_final", lambda t: t.meta.get("condition") == "base")):
-        tasks = load_tasks(PANELS / f"{name}.tasks.jsonl")
-        gold = {d["task_id"]: d for d in read_jsonl(PANELS / f"{name}.gold.jsonl")}
-        pairs = []
-        for t in tasks:
-            if not keep(t):
-                continue
-            rev = Task(t.task_id + "-rev", t.family, t.split + "_rev", t.cluster_id, t.instructions, t.evidence, t.question,
-                       tuple(reversed(t.choices)), {**t.meta, "variant": "options_reversed", "of": t.task_id})
-            g = gold[t.task_id]
-            idx = len(t.choices) - 1 - LETTERS.index(g["answer_id"])
-            pairs.append((rev, Gold(rev.task_id, LETTERS[idx], g["answer_label"])))
-        print(_save_panel(f"{name}_rev", pairs))
+    tasks = load_tasks(PANELS / f"{name}.tasks.jsonl")
+    gold = {d["task_id"]: d for d in read_jsonl(PANELS / f"{name}.gold.jsonl")}
+    pairs = []
+    for t in tasks:
+        if not keep(t):
+            continue
+        rev = Task(t.task_id + "-rev", t.family, t.split + "_rev", t.cluster_id, t.instructions, t.evidence, t.question,
+                   tuple(reversed(t.choices)), {**t.meta, "variant": "options_reversed", "of": t.task_id})
+        g = gold[t.task_id]
+        pairs.append((rev, Gold(rev.task_id, LETTERS[len(t.choices) - 1 - LETTERS.index(g["answer_id"])], g["answer_label"])))
+    return _save_panel(out_name or f"{name}_rev", pairs)
+
+
+def cmd_variants(a):
+    """Prespecified robustness panels (option reversal) and the sealed latency subset.
+
+    folio_final_rev / controlled_final_rev (base items) are the preregistered all-system reversal ablation;
+    the other *_rev panels feed the JEV-H harness (A4) and are run with JEV-9B System 1 only.
+    """
+    import random
+    print(_reverse_panel("folio_final"))
+    print(_reverse_panel("controlled_final", lambda t: t.meta.get("condition") == "base"))
+    if a.harness:
+        for n in ("anli_final", "judgebench_final", "banking_final", "controlled_deep", "rewardbench", "halueval", "dev_pilot", "controlled_dev"):
+            if (PANELS / f"{n}.tasks.jsonl").exists():
+                print(_reverse_panel(n))
+        # non-base controlled items get their own reversed panel; the frozen controlled_final_rev stays base-only
+        print(_reverse_panel("controlled_final", lambda t: t.meta.get("condition") != "base", out_name="controlled_final_ctlrev"))
+        return
     folio = load_tasks(PANELS / "folio_final.tasks.jsonl")
     rng = random.Random(f"{ds.DEV_SEED}-latency")
     ids = sorted(rng.sample([t.task_id for t in folio], 100))
@@ -335,7 +349,9 @@ def main(argv=None):
     sp.add_parser("env").set_defaults(fn=cmd_env)
     sp.add_parser("forecast").set_defaults(fn=cmd_forecast)
     sp.add_parser("restore").set_defaults(fn=cmd_restore)
-    sp.add_parser("variants").set_defaults(fn=cmd_variants)
+    va = sp.add_parser("variants")
+    va.add_argument("--harness", action="store_true", help="also build reversed panels for the JEV-H harness")
+    va.set_defaults(fn=cmd_variants)
     sp.add_parser("amendments").set_defaults(fn=cmd_amendments)
     sp.add_parser("judge-track").set_defaults(fn=cmd_judge_track)
     for name, fn in (("run", cmd_run), ("batch-submit", cmd_batch_submit), ("batch-collect", cmd_batch_collect)):
