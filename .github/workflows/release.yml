@@ -1,9 +1,11 @@
 name: Release
+# Pushing a tag like v0.1.0 builds the package, attaches it to a GitHub Release,
+# and publishes to PyPI via Trusted Publishing (OIDC) -- no API token is stored anywhere.
 on:
   push:
     tags: ["v*"]
 jobs:
-  pypi:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -11,6 +13,19 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install build && python -m build
-      - uses: pypa/gh-action-pypi-publish@release/v1
+      - uses: actions/upload-artifact@v4
         with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
+          name: dist
+          path: dist/
+  pypi:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
