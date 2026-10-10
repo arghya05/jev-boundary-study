@@ -1,11 +1,11 @@
 \section{Results}
 \label{sec:results}
 
-Table~\ref{tab:main} reports every panel; Table~\ref{tab:paired} the frozen paired comparisons; Figure~\ref{fig:op} the accuracy--cost operating points.
+Table~\ref{tab:maincompact} summarises every panel (full detail in Appendix Table~\ref{tab:main}); Table~\ref{tab:paired} the frozen paired comparisons; Figure~\ref{fig:op} the accuracy--cost operating points.
 All frontier calls completed without failures except 25 Claude refusals on RewardBench, which are scored incorrect.
 Total API spend for the whole study, including development, probes and ablations, was \$\ApiTotal.
 
-\input{tables/main}
+\input{tables/main_compact}
 \input{tables/paired}
 
 \begin{figure}[t]
@@ -64,6 +64,7 @@ Because System~2 is flat at 100\%, these contrasts mostly restate System~1's own
 \subsection{Judging LLM outputs}
 \label{sec:judging}
 \input{tables/judgetrack}
+\input{tables/length}
 
 The judge track asks whether JEV-9B can replace a frontier LLM-as-a-judge.
 \textbf{On RewardBench it is the closest to parity of any panel.}
@@ -77,15 +78,56 @@ On HaluEval-QA JEV-9B detects hallucinated answers at \AccHaluSone\%, against \A
 \emph{All three judges are below a trivial baseline here}: answer length alone separates right from hallucinated answers with AUROC \HaluLenAuroc, because HaluEval's hallucinated answers are systematically longer.
 We report HaluEval for completeness but draw no conclusion about hallucination detection from it.
 
-\input{tables/length}
+
+
+\subsection{Is the one-pass probability calibrated?}
+\label{sec:calibration}
+\input{tables/calibration}
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.55\linewidth]{figures/calibration.pdf}
+\caption{Reliability of JEV-9B System~1's top probability by task family (bins with at least 15 items).}
+\label{fig:calibration}
+\end{figure}
+A decision model's selling point is its probability, so we test it out of distribution (Table~\ref{tab:calibration}, Figure~\ref{fig:calibration}).
+On RewardBench the top probability is well calibrated (mean confidence 88.5\% against 87.0\% accuracy; ECE 0.026).
+On the reasoning panels it is systematically overconfident by 6.8 (FOLIO) to 10.7 (controlled) points, with ECE around 0.10---two orders of magnitude above the 0.0007 the model card reports on its in-distribution test set.
+Confidence remains informative for ranking (it is what makes the JEV-H gate work), but a deployment should not read a 0.8 from JEV-9B on a reasoning task as an 80\% chance of being right without recalibrating on its own data.
 
 \subsection{The JEV-H harness}
 \label{sec:harness-results}
 \input{tables/harness}
 
-JEV-H (preregistration A4) asks System~1 in both option orders and escalates to System~2 when the averaged confidence is below 0.90.
-Its escalation rate is itself informative: \EscAnli\% of ANLI items, \EscJudgebench\% of JudgeBench, \EscRewardbench\% of RewardBench and \EscHalueval\% of HaluEval items fall below the threshold, so the one-pass model is confident precisely on the panels where it is accurate.
-Table~\ref{tab:harness} compares the harness with each frontier under its own Bonferroni family.
+JEV-H (preregistration A4) asks System~1 in both option orders and escalates to System~2 when the averaged confidence is below 0.90; it has no fitted parameter.
+Its escalation rate is itself informative: \EscHalueval\% of HaluEval, \EscRewardbench\% of RewardBench, \EscFolio\% of FOLIO, \EscAnli\% of ANLI and \EscJudgebench\% of JudgeBench items fall below the threshold, so the one-pass model is confident mostly where it is accurate.
+Table~\ref{tab:harness} compares the harness with each frontier in its own Bonferroni family of 12 comparisons.
+
+\textbf{On RewardBench the harness is the most accurate system we tested.}
+It is correct on \AccRbHarn\% of the 500 shared pairs, against \AccRbAstra\% for Astra ($\Delta=\DeltaHRbAstra$ [\LoHRbAstra, \HiHRbAstra]) and \AccRbFable\% for Fable ($\Delta=\DeltaHRbFable$ [\LoHRbFable, \HiHRbFable]).
+Under the preregistered scoring the frozen rule returns \emph{\ConclHRbFable} against Fable.
+That verdict needs one qualification, which we state as prominently as the result: all 25 of Fable's refusals are Safety pairs, scored as errors.
+On the 475 pairs Fable answered, JEV-H and Fable are statistically indistinguishable (\AccHRbFableAnsweredH\% vs.\ \AccHRbFableAnsweredF\%, $\Delta=\DeltaHRbFableAnswered$ [\LoHRbFableAnswered, \HiHRbFableAnswered]; a sensitivity analysis that was not preregistered).
+Against Astra the interval sits within $[-2.4, 3.6]$: the harness neither loses nor certifiably matches it under the two-point margin.
+It does this at \$\CostRbHarn{} per thousand judgements, against \$\CostRbAstra{} and \$\CostRbFable.
+
+On the reasoning panels the harness recovers most of the one-pass deficit.
+On ANLI it is \AccAnliHarn\% against Astra's \AccAnliAstra\% ($\Delta=\DeltaHAnliAstra$ [\LoHAnliAstra, \HiHAnliAstra]), up from System~1's \AccAnliSone\%; on FOLIO \AccFolioHarn\% against \AccFolioAstra\%; on the controlled panel \AccCtlHarn\%.
+None of these reach the frozen rule's \emph{comparable} verdict---their lower bounds pass the two-point margin---but none is a material frontier advantage either, where System~1 alone was.
+The harness still trails clearly on HaluEval (\AccHaluHarn\% vs.\ \AccHaluFable\% for Fable) and on JudgeBench (\AccJbgptHarn\% vs.\ \AccJbgptAstra\%), the two panels whose judgements need factual verification of long answers.
+Its cost is \$\CostFolioHarn--\$\CostJbgptHarn{} per thousand items, 6--35 times cheaper than the frontier on the same panel, even with System~2 charged conservatively for all pod time (Table~\ref{tab:main}).
+
+
+\paragraph{Threshold sensitivity (exploratory).}
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/threshold.pdf}
+\caption{JEV-H as the escalation threshold varies (exploratory; the preregistered threshold is 0.90, dotted). Left: accuracy against threshold. Right: accuracy against the share of items escalated to System~2.}
+\label{fig:threshold}
+\end{figure}
+The preregistered threshold of 0.90 was fixed a priori; Figure~\ref{fig:threshold} shows what lower thresholds would have bought, using the System~2 answers already collected.
+Most of the gain arrives early: on RewardBench a threshold of 0.70 reaches 93.4\% while escalating 22\% of items (0.90: 94.4\% at 51\%), and on JudgeBench 0.60 already lifts accuracy from 69.3\% to 80.5\% at 36\% escalation.
+On FOLIO and ANLI the curve keeps rising to 0.90, because the one-pass model is unsure on most items.
+A deployment should choose its threshold from this curve on its own labelled data; \texttt{jevstudy judge} reports it.
 
 \subsection{Robustness}
 \label{sec:robust}

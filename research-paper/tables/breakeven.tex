@@ -1,0 +1,23 @@
+\begin{table}[t]
+\centering\small
+\caption{Break-even cost of one error. With expected loss $=$ cost per decision $+$ $P(\text{error})\times c$, paying for the frontier instead of the JEV-9B configuration is worth it only when an error costs more than $c^*=\Delta\text{cost}/\Delta\text{accuracy}$. ``never'': the JEV-9B configuration is at least as accurate and cheaper.}
+\label{tab:breakeven}
+\begin{tabular}{@{}llrr@{}}
+\toprule
+Panel & Cheap system & $c^*$ vs.\ Astra & $c^*$ vs.\ Fable \\
+\midrule
+FOLIO & JEV-9B S1 & \$0.052 & \$0.057 \\
+ & JEV-H harness & \$0.346 & \$0.190 \\
+ANLI r3 & JEV-9B S1 & \$0.065 & \$0.057 \\
+ & JEV-H harness & \$1.91 & \$0.251 \\
+Controlled & JEV-9B S1 & \$0.013 & \$0.018 \\
+ & JEV-H harness & \$0.162 & \$0.233 \\
+JudgeBench (partial) & JEV-9B S1 & \$0.083 & \$0.162 \\
+ & JEV-H harness & \$0.327 & \$0.677 \\
+RewardBench & JEV-9B S1 & \$0.057 & \$0.177 \\
+ & JEV-H harness & never & never \\
+HaluEval-QA & JEV-9B S1 & \$0.030 & \$0.033 \\
+ & JEV-H harness & \$0.070 & \$0.057 \\
+\bottomrule
+\end{tabular}
+\end{table}

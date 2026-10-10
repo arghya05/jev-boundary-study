@@ -1,0 +1,12 @@
+downloading uv 0.13.0 x86_64-unknown-linux-gnu
+installing to /root/.local/bin
+  uv
+  uvx
+everything's installed!
+[90mHint: A new version of huggingface_hub (2.2.0) is available! You are using version 1.33.0.[0m
+[90mHint: The `hf-cli` skill is not installed. Run `hf skills add -g` to teach your AI agents how to use the `hf` CLI.[0m
+Fetching 73 files:   0%|          | 0/73 [00:00<?, ?it/s]Fetching 73 files:   1%|▏         | 1/73 [00:00<00:09,  7.45it/s]Fetching 73 files:  10%|▉         | 7/73 [00:00<00:02, 29.55it/s]Fetching 73 files:  15%|█▌        | 11/73 [00:01<00:07,  7.85it/s]Fetching 73 files:  18%|█▊        | 13/73 [00:01<00:06,  9.08it/s]Fetching 73 files:  21%|██        | 15/73 [00:01<00:05, 10.26it/s]Fetching 73 files:  25%|██▍       | 18/73 [00:01<00:04, 13.28it/s]Fetching 73 files:  29%|██▉       | 21/73 [00:01<00:03, 14.84it/s]Fetching 73 files:  33%|███▎      | 24/73 [00:01<00:03, 16.29it/s]Fetching 73 files:  37%|███▋      | 27/73 [00:01<00:02, 18.38it/s]Fetching 73 files:  41%|████      | 30/73 [00:02<00:02, 19.43it/s]Fetching 73 files:  45%|████▌     | 33/73 [00:02<00:01, 21.37it/s]Fetching 73 files:  49%|████▉     | 36/73 [00:02<00:01, 18.57it/s]Fetching 73 files:  53%|█████▎    | 39/73 [00:02<00:01, 19.74it/s]Fetching 73 files:  58%|█████▊    | 42/73 [00:02<00:01, 18.42it/s]Fetching 73 files:  62%|██████▏   | 45/73 [00:02<00:01, 20.24it/s]Fetching 73 files:  66%|██████▌   | 48/73 [00:02<00:01, 21.80it/s]Fetching 73 files:  70%|██████▉   | 51/73 [00:03<00:01, 21.50it/s]Fetching 73 files:  74%|███████▍  | 54/73 [00:03<00:00, 22.40it/s]Fetching 73 files:  78%|███████▊  | 57/73 [00:03<00:00, 18.42it/s]Fetching 73 files:  82%|████████▏ | 60/73 [00:11<00:10,  1.26it/s]Fetching 73 files:  85%|████████▍ | 62/73 [00:11<00:07,  1.56it/s]Fetching 73 files:  88%|████████▊ | 64/73 [00:11<00:04,  1.99it/s]Fetching 73 files:  90%|█████████ | 66/73 [00:11<00:02,  2.50it/s]Fetching 73 files:  95%|█████████▍| 69/73 [00:13<00:01,  2.14it/s]Fetching 73 files:  96%|█████████▌| 70/73 [00:13<00:01,  2.39it/s]Fetching 73 files:  97%|█████████▋| 71/73 [00:15<00:01,  1.41it/s]Fetching 73 files:  99%|█████████▊| 72/73 [00:15<00:00,  1.54it/s]Fetching 73 files: 100%|██████████| 73/73 [00:16<00:00,  1.61it/s]Fetching 73 files: 100%|██████████| 73/73 [00:16<00:00,  4.42it/s]
+name, driver_version, memory.total [MiB]
+NVIDIA A40, 580.178.04, 46068 MiB
+setup done
+EXIT=0

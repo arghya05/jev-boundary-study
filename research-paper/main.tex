@@ -1,41 +1,59 @@
-\documentclass[11pt]{article}
-\usepackage[margin=1in]{geometry}
+\documentclass{article}
+% NeurIPS 2026 style. Build variants:
+%   preprint (named, default):  \usepackage[preprint]{neurips_2026}
+%   anonymous submission:       \usepackage{neurips_2026}
+%   camera-ready:               \usepackage[final]{neurips_2026}
+\ifdefined\anonsubmission
+  \usepackage{neurips_2026}
+\else
+  \usepackage[preprint]{neurips_2026}
+\fi
+\usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage{lmodern}
-\usepackage{microtype}
-\usepackage{amsmath,amssymb}
+\usepackage{hyperref}
+\usepackage{url}
 \usepackage{booktabs,tabularx,makecell,multirow}
-\usepackage{graphicx}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{nicefrac}
+\usepackage{microtype}
 \usepackage{xcolor}
+\usepackage{graphicx}
 \usepackage{enumitem}
-\usepackage[numbers,sort&compress]{natbib}
-\usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
 \usepackage{caption}
+\usepackage{placeins}
 \captionsetup{font=small,labelfont=bf}
 \setlength{\tabcolsep}{4pt}
-\renewcommand{\arraystretch}{1.08}
 
-\title{When Can a Decision Model Replace a Reasoning LLM?\\[2pt]
-\large Controlled Evidence on Accuracy, Depth and Cost for a Distilled One-Pass Decision Model\\ versus GPT-6 Astra and Claude Fable~5.1}
-\author{Arghya Mukherjee\\\small\texttt{github.com/arghya05/jev-boundary-study}}
-\date{October 2026}
+\input{numbers}
+
+\title{When Can a Decision Model Replace a Reasoning LLM?\\ Controlled, Cost-Accounted Evidence for a Distilled One-Pass Judge}
+
+\author{Arghya Mukherjee\\Independent Researcher\\\texttt{arghya05@gmail.com}\\
+\href{https://orcid.org/0009-0008-3423-8574}{ORCID: 0009-0008-3423-8574}}
 
 \begin{document}
+\raggedbottom
 \maketitle
 
 \input{sec_abstract}
 
 \input{sec_intro}
 \input{sec_related}
+\FloatBarrier
 \input{sec_design}
+\FloatBarrier
 \input{sec_protocol}
+\FloatBarrier
 \input{sec_results}
+\FloatBarrier
 \input{sec_discussion}
+\FloatBarrier
 
 \bibliographystyle{plainnat}
 \bibliography{refs}
 
 \appendix
 \input{sec_appendix}
+\input{sec_checklist}
 
 \end{document}

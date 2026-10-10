@@ -1,0 +1,25 @@
+\begin{table*}[t]
+\centering\small
+\caption{JEV-H harness (A4: two option orders, threshold 0.90 fixed a priori, escalation to JEV-9B's own System~2) against each frontier. $\Delta$ = JEV-H minus frontier (points); intervals Bonferroni-adjusted over all 12 panel $\times$ frontier pairs. $^\dagger$Not preregistered: all 25 of Claude Fable's RewardBench refusals are Safety pairs, scored incorrect in the primary row; this row drops them.}
+\label{tab:harness}
+\resizebox{\linewidth}{!}{\begin{tabular}{@{}llrrrcl@{}}
+\toprule
+Panel & Frontier & JEV-H & Frontier & $\Delta$ & Adj.\ CI & Conclusion \\
+\midrule
+FOLIO & Astra (high) & 84.3 & 86.8 & -2.5 & [-9.6, 5.1] & inconclusive \\
+ & Fable (high) & 84.3 & 90.2 & -5.9 & [-12.9, 0.0] & inconclusive \\
+ANLI r3 & Astra (high) & 74.6 & 74.9 & -0.3 & [-3.9, 3.1] & inconclusive \\
+ & Fable (high) & 74.6 & 77.3 & -2.8 & [-6.1, 0.6] & inconclusive \\
+Controlled & Astra (high) & 96.9 & 100.0 & -3.1 & [-6.2, -0.7] & inconclusive \\
+ & Fable (high) & 96.9 & 100.0 & -3.1 & [-6.2, -0.7] & inconclusive \\
+JudgeBench (partial) & Astra (high) & 88.2 & 94.5 & -6.4 & [-19.1, -1.5] & inconclusive \\
+ & Fable (high) & 88.2 & 94.2 & -6.1 & [-16.6, -1.9] & inconclusive \\
+RewardBench & Astra (high) & 94.4 & 93.8 & 0.6 & [-2.4, 3.6] & inconclusive \\
+ & Fable (high) & 94.4 & 90.2 & 4.2 & [0.4, 8.2] & JEV-H better \\
+HaluEval-QA & Astra (high) & 87.7 & 90.6 & -2.9 & [-5.3, -0.7] & inconclusive \\
+ & Fable (high) & 87.7 & 93.3 & -5.6 & [-8.2, -3.3] & frontier better \\
+\addlinespace
+RewardBench, refusals excluded$^\dagger$ & Fable (high) & 94.1 & 94.9 & -0.8 & [-4.0, 2.1] & sensitivity only ($n=475$) \\
+\bottomrule
+\end{tabular}}
+\end{table*}

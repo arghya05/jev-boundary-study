@@ -11,3 +11,6 @@ runpod/.pod*
 data/panels/*
 !data/panels/controlled_*
 results/batches/
+research-paper/main.pdf
+research-paper/*.aux
+research-paper/*.log

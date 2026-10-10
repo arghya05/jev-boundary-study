@@ -13,7 +13,7 @@ A startup choosing a judge for its evaluation pipeline needs something else: mat
 
 We provide that for one open decision model, \textbf{JEV-9B}, a community distillation of Jev~1.13, against \textbf{GPT-6 Astra} and \textbf{Claude Fable~5.1} at high reasoning effort.
 The study was preregistered before any held-out call; every system receives byte-identical task content; failures stay in every denominator; and every result is paired with its measured cost.
-It makes four contributions.
+It makes five contributions.
 
 \begin{enumerate}[leftmargin=1.4em,itemsep=2pt]
 \item \textbf{Matched accuracy and cost across nine panels.}
@@ -24,8 +24,10 @@ The one-pass deficit is a deficit of computation, not of knowledge.
 \item \textbf{A controlled panel that isolates dependency depth} from length, rule count and distractors, with two independent reference scorers and paired decision-changing and decision-preserving edits.
 Contrary to our preregistered hypothesis, depth did not measurably drive the one-pass model's errors at this precision; its failures concentrate on items whose correct answer is that nothing follows, and its answers are unstable under meaning-preserving edits.
 \item \textbf{Evidence on LLM-as-a-judge replacement, and a reusable toolkit.}
-On RewardBench, one-pass JEV-9B differs from Claude Fable by \DeltaRbFable{} points (interval [\LoRbFable, \HiRbFable]) and better on its Safety section, at about a thirtieth of the cost; on harder correctness judging it is far behind.
-We release the harness, a self-hostable judging API with calibrated probabilities and confidence-gated escalation, and a command that runs this paper's fair-comparison protocol on a user's own labelled data.
+On RewardBench, one-pass JEV-9B is within \AbsDeltaRbFable{} points of Claude Fable (interval [\LoRbFable, \HiRbFable]) at about a thirtieth of the cost; on harder correctness judging it is far behind.
+\item \textbf{JEV-H, a parameter-free judging harness} that asks in both option orders and escalates uncertain items to the model's own reasoning mode on the same GPU.
+It is the most accurate judge we tested on RewardBench (\AccRbHarn\% vs.\ \AccRbAstra\% and \AccRbFable\%; statistically tied with Astra, and the margin over Fable comes from Fable's refusals), within \AbsDeltaHAnliAstra{} points of Astra on ANLI, and 6--35 times cheaper than either frontier.
+We release it with a self-hostable judging API and a command that runs this paper's fair-comparison protocol on a user's own labelled data.
 \end{enumerate}
 
 A distribution-level bridge to published official-Jev results on ProofWriter shows that JEV-9B tracks its teacher on shallow items but not on deep ones, so none of our reasoning results transfers to official Jev without new measurement (Section~\ref{sec:bridge}).

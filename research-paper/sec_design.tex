@@ -3,7 +3,7 @@
 
 \subsection{Systems}
 \label{sec:systems}
-Table~\ref{tab:systems} lists the four configurations.
+Appendix Table~\ref{tab:systems} lists the configurations in full.
 \textbf{JEV-9B System~1} is the decision model under study: one prefill pass through the decision LoRA, after which we read the log-probabilities of the option verbalisers, add the published head bias and divide by the per-kind temperature, exactly as the model card prescribes.
 Before any evaluation we reproduced the card's two worked examples to three decimals (choice: 0.335/0.142/0.522/0.001 vs.\ the card's 0.33/0.14/0.53/0.001; yes/no: 0.991 vs.\ 0.991).
 \textbf{GPT-6 Astra} and \textbf{Claude Fable~5.1} run with native reasoning at \texttt{high} effort and 32k output headroom, and return a final label through each provider's schema-constrained output.
@@ -12,30 +12,13 @@ We deliberately do \emph{not} enable Anthropic's server-side refusal fallback, w
 \textbf{JEV-9B System~2} is the same weights' unmodified base model with thinking enabled.
 Because it shares every parameter of the backbone with System~1, contrasting the two isolates ``one forward pass versus reasoning'' from model size, training data and family---a control that a closed decision model cannot provide.
 
-\begin{table}[t]
-\centering\small
-\caption{Evaluated systems. Official TypeSafe Jev was not evaluated: no API access was available and its weights are not public. Every claim refers to JEV-9B, a community distillation of Jev~1.13.}
-\label{tab:systems}
-\begin{tabularx}{\linewidth}{@{}llX@{}}
-\toprule
-Key & Model (revision) & Configuration \\
-\midrule
-\texttt{jev9b-s1} & autotrust/JEV-9B (\texttt{b63f651}) & System~1 choice head via vLLM~0.31.0 LoRA; bias + temperature 0.984 client-side; no truncation (context 32{,}768) \\
-\texttt{jev9b-s2} & same weights, base \texttt{lm\_head} & Qwen3.5-9B, \texttt{enable\_thinking}, $T{=}0.6$, top-$p{=}0.95$, 16k tokens; free-text answer parsed \\
-\texttt{astra-high} & \texttt{gpt-6-astra} & Responses API, \texttt{reasoning.effort=high}, 32k output, strict JSON schema, no tools \\
-\texttt{fable-high} & \texttt{claude-fable-5-1} & Messages API, adaptive thinking (always on), \texttt{effort=high}, 32k output, JSON schema, no tools, no fallback \\
-\bottomrule
-\end{tabularx}
-\end{table}
+
 
 \subsection{One canonical task, identical for every system}
 \label{sec:canonical}
 Every item is a canonical task object---instructions, evidence, question and an ordered list of choices---whose content is hashed.
-The frontier models receive the rendered text
-\begin{quote}\small\ttfamily
-Task: \{instructions\}\textbackslash n Evidence: \{evidence\}\textbackslash n Question: \{question\}\textbackslash n Choices: A) \ldots{} B) \ldots\textbackslash n Select the correct choice using the supplied information and task definition. Return the final choice identifier.
-\end{quote}
-JEV-9B receives the same instructions and evidence as its \texttt{[state]}, the same question, and the same lettered options in its native typed template; only the final instruction sentence is replaced by the typed interface.
+The frontier models receive this text verbatim, ending with ``Select the correct choice using the supplied information and task definition. Return the final choice identifier.''
+JEV-9B receives the same instructions and evidence as its \texttt{[state]}, the same question, and the same lettered options in its native typed template (Appendix~\ref{app:prompts}).
 Gold labels live in separate files that the runner never opens; the scorer joins them after predictions are saved.
 ANLI explanations, FOLIO logical forms and JudgeBench generator identities never enter a task.
 Tests assert these exclusions, the identity of the frontier prompt text across providers, and that every semantic component appears in the JEV-9B prompt.
@@ -46,16 +29,13 @@ Table~\ref{tab:panels} lists the panels and their independent sampling units.
 FOLIO~\citep{folio2024} is taken from the authors' repository at a pinned commit (the Hugging Face copy is gated); its 204 validation rows come from only 73 premise sets, which are the clusters for uncertainty.
 ANLI~\citep{anli2020} round-3 test rows are clustered by premise.
 JudgeBench~\citep{judgebench2025} rows are clustered by source question, which recurs across its GPT and Claude response splits.
-Two panels are secondary by design.
-JEV-9B's choice head accepts at most sixteen options, so Banking77~\citep{banking77} is presented to \emph{every} system with sixteen candidates: the gold intent plus the fifteen intents whose TF--IDF centroids over \emph{training} utterances are most similar.
-This makes the task harder than random sixteen-way subsets but easier than the 77-way benchmark, and the results are not Banking77 scores.
-JudgeBench inputs routinely exceed the 1{,}024 tokens on which JEV-9B was trained; we do not truncate, and report length strata.
+JudgeBench inputs routinely exceed the 1{,}024 tokens on which JEV-9B was trained; we do not truncate (length strata in Appendix~\ref{app:tables}). RewardBench and HaluEval-QA form the judge track (A3): human-verified pairs of chat responses and right-versus-hallucinated answers.
 
 \begin{table}[t]
 \centering\small
-\caption{Panels. All rows of every panel are evaluated for every system; failures are scored incorrect.}
+\caption{Panels. All analysed rows are evaluated for every system and failures are scored incorrect. $^*$Reduced by the declared budget amendment A5 (Appendix~\ref{app:prereg}); Banking77-16 was dropped.}
 \label{tab:panels}
-\begin{tabular}{@{}llrrl@{}}
+\resizebox{\linewidth}{!}{\begin{tabular}{@{}llrrl@{}}
 \toprule
 Panel & Source (pin) & Rows & Clusters & Role \\
 \midrule
@@ -64,12 +44,13 @@ ANLI test\_r3 & HF \texttt{8e4813d} & 1{,}200 & 1{,}128 & primary \\
 Controlled (base) & 48 sealed seeds & 288 & 48 & primary (H1) \\
 \quad paired controls & same seeds & 96 & 48 & primary (H1) \\
 \quad evidence removed & same seeds & 32 & 32 & exploratory \\
-JudgeBench gpt + claude & HF \texttt{57dd5e0} & 620 & 268 & secondary \\
-Banking77-16 test & GitHub \texttt{57ec275} & 3{,}080 & 3{,}080 & secondary \\
+JudgeBench gpt + claude & HF \texttt{57dd5e0} & 349 of 620$^*$ & 158 & secondary \\
+RewardBench (A3) & HF \texttt{168d848} & 500 of 2{,}985$^*$ & 492 & judge track \\
+HaluEval-QA (A3) & HF \texttt{12a8561} & 1{,}000 & 1{,}000 & judge track \\
 Controlled deep (A1) & 24 sealed seeds & 72 & 24 & exploratory \\
 ProofWriter bridge (A2) & HF \texttt{ee4d22d} & 900 & 804 & exploratory \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
 \subsection{The controlled dependency panel}

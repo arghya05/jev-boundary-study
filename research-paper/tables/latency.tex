@@ -1,0 +1,14 @@
+\begin{table}[t]
+\centering\small
+\caption{Interactive latency on a sealed 100-item FOLIO subset: fresh synchronous calls, concurrency 1, non-streaming, interleaved provider order, from the same pod. Seconds from dispatch to complete response. JEV-9B runs on the pod's GPU without a network hop, so its latency is not like-for-like with remote APIs.}
+\label{tab:latency}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+System & $n$ & p50 & p90 & p95 & \$/1k & Acc.\ (\%) \\
+\midrule
+JEV-9B S1 & 100 & 0.08 & 0.09 & 0.10 & 0.013 & 68.0 \\
+Astra (high) & 100 & 2.68 & 6.24 & 8.66 & 8.06 & 86.0 \\
+Fable (high) & 100 & 1.93 & 4.72 & 5.54 & 11.42 & 93.0 \\
+\bottomrule
+\end{tabular}
+\end{table}

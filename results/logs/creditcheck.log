@@ -1,0 +1,5 @@
+running 1 tasks x ['astra-high', 'fable-high'] -> /workspace/jev/results/raw/judgebench_final.creditcheck.jsonl
+judgebench-gpt-c4da31be-6fe6-5c9a-bdf8-2dfd8f2884ef astra-high   ok        ans=A $0.0228 3.4s  ledger={'api_spent_usd': 39.3545, 'committed_usd': 0.0}
+judgebench-gpt-c4da31be-6fe6-5c9a-bdf8-2dfd8f2884ef fable-high   ok        ans=A $0.0484 5.2s  ledger={'api_spent_usd': 39.4029, 'committed_usd': 0.0}
+ledger {'api_spent_usd': 39.4029, 'committed_usd': 0.0}
+failure rates {'astra-high': 0.0, 'fable-high': 0.0}

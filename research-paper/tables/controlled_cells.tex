@@ -1,0 +1,17 @@
+\begin{table}[t]
+\centering\small
+\caption{Controlled panel accuracy (\%) by dependency depth $d$ and irrelevant facts $c$ (48 seeds per cell), and by gold label (96 items each). Chance is 33\%.}
+\label{tab:cells}
+\begin{tabular}{@{}lcccccc|ccc@{}}
+\toprule
+& \multicolumn{2}{c}{$d=1$} & \multicolumn{2}{c}{$d=3$} & \multicolumn{2}{c|}{$d=5$} & \multicolumn{3}{c}{Gold label} \\
+System & $c{=}0$ & $c{=}8$ & $c{=}0$ & $c{=}8$ & $c{=}0$ & $c{=}8$ & True & False & Unk. \\
+\midrule
+JEV-9B S1 & 60 & 62 & 60 & 40 & 67 & 46 & 62 & 80 & 25 \\
+JEV-9B S2 & 100 & 100 & 100 & 100 & 100 & 100 & 100 & 100 & 100 \\
+JEV-H harness & 98 & 98 & 94 & 98 & 96 & 98 & 99 & 98 & 94 \\
+Astra (high) & 100 & 100 & 100 & 100 & 100 & 100 & 100 & 100 & 100 \\
+Fable (high) & 100 & 100 & 100 & 100 & 100 & 100 & 100 & 100 & 100 \\
+\bottomrule
+\end{tabular}
+\end{table}

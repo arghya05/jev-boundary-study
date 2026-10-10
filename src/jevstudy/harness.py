@@ -6,7 +6,7 @@ For each item:
   2. If the averaged top probability >= THRESHOLD (0.90, fixed a priori), answer its argmax.
   3. Otherwise answer with JEV-9B System 2 (same weights, thinking); if System 2 failed, keep step 2's argmax.
 
-Cost = both System-1 calls + System 2's per-item share of GPU time on escalated items.
+Cost = both System-1 calls + a conservative per-item System-2 GPU charge (s2_rate_per_item) on escalated items.
 No parameter is fitted. The harness reads only model outputs, never gold.
 
     python -m jevstudy.harness --root .      # writes results/raw/harness_jevh.jsonl (system "jev9b-h")
@@ -53,24 +53,25 @@ def combine(s1: dict | None, s1_rev: dict | None, s2: dict | None, n_choices: in
             "confidence": conf, "distribution": avg, "n_orders": len(dists)}
 
 
-def s2_rate_per_item(root: Path) -> dict:
-    """USD per System-2 item for each panel: logged pod-hours over the panel's run window x $/h / items run."""
+def s2_rate_per_item(root: Path) -> float:
+    """Conservative USD per System-2 item: ALL pod time from the first to the last System-2 run window,
+    times $/h, divided by every System-2 item run. It charges System 2 for time the GPU was also serving
+    other work, so it overstates rather than understates the harness's cost."""
     rate = json.load(open(root / "manifests" / "rate_card.json")).get("jev9b", {}).get("usd_per_hr", 0.59)
-    hours, starts = defaultdict(float), {}
     wf = root / "results" / "gpu_windows.jsonl"
-    for e in (read_jsonl(wf) if wf.exists() else []):
-        if e["track"] != "B":
+    ts = [e["t"] for e in (read_jsonl(wf) if wf.exists() else []) if e["track"] == "B"]
+    n = 0
+    seen = set()
+    for f in sorted((root / "results" / "raw").glob("*.jsonl")):
+        if f.name.startswith("harness"):
             continue
-        if e["event"] == "start":
-            starts[e["panel"]] = e["t"]
-        elif e["panel"] in starts:
-            hours[e["panel"]] += (e["t"] - starts.pop(e["panel"])) / 3600
-    out = {}
-    for panel, h in hours.items():
-        p = root / "data" / "panels" / f"{panel}.tasks.jsonl"
-        n = sum(1 for _ in open(p)) if p.exists() else 0
-        out[panel] = h * rate / n if n else 0.0
-    return out
+        for r in read_jsonl(f):
+            if r["system"] == "jev9b-s2" and r["task_id"] not in seen:
+                seen.add(r["task_id"])
+                n += 1
+    if not ts or not n:
+        return 0.0
+    return (max(ts) - min(ts)) / 3600 * rate / n
 
 
 def build(root: Path, panels: list[str], threshold: float = THRESHOLD) -> Path:
@@ -83,11 +84,14 @@ def build(root: Path, panels: list[str], threshold: float = THRESHOLD) -> Path:
                 continue
             if r["system"] in ("jev9b-s1", "jev9b-s2"):
                 latest[(r["system"], r["task_id"])] = r
-    per_item = s2_rate_per_item(root)
+    c = s2_rate_per_item(root)
     out_rows = []
+    scope = {"rewardbench": "rewardbench_500.json", "judgebench_final": "judgebench_partial.json"}  # A5 analysed subsets
     for panel in panels:
         tasks = read_jsonl(root / "data" / "panels" / f"{panel}.tasks.jsonl")
-        c = per_item.get(panel, 0.0)
+        if panel in scope and (root / "manifests" / scope[panel]).exists():
+            keep = set(json.load(open(root / "manifests" / scope[panel]))["ids"])
+            tasks = [t for t in tasks if t["task_id"] in keep]
         for t in tasks:
             tid = t["task_id"]
             res = combine(latest.get(("jev9b-s1", tid)), latest.get(("jev9b-s1", tid + "-rev")),
@@ -106,7 +110,7 @@ def build(root: Path, panels: list[str], threshold: float = THRESHOLD) -> Path:
     return path
 
 
-PANELS = ["folio_final", "anli_final", "controlled_final", "judgebench_final", "banking_final",
+PANELS = ["folio_final", "anli_final", "controlled_final", "judgebench_final",
           "controlled_deep", "rewardbench", "halueval"]
 
 

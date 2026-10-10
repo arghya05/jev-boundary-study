@@ -1,28 +1,19 @@
 \section{Measurement and Statistical Protocol}
 \label{sec:protocol}
 
-\subsection{Execution and fairness controls}
-All clients, scorers and analysis ran on a single RunPod pod (NVIDIA A40, 48\,GB, \$0.59/h) that also served JEV-9B with vLLM~0.31.0~\citep{vllm}.
-Within each item the provider order was randomised with a seeded generator.
-The SDKs' own retries were disabled; the runner retries at most once, and only for a transport failure or an HTTP~408/409/429/5xx, never because of an answer.
-Refusals, truncations, invalid outputs and errors stay in every denominator as incorrect.
-Responses are cached under a key that hashes the task content, model, version, effort, output schema and protocol version, so no item is ever billed twice and no answer is ever chosen among repeats.
-Every paid request reserves its configured maximum cost in an append-only ledger before dispatch and settles its billed cost afterwards.
-Before any held-out call, development usage was used to forecast each panel's expected and conservative (95th-percentile) cost; a run stops for review if spending would exceed 1.5 times the conservative forecast, or if any system's failure rate on a panel exceeds 10\%.
-
-\subsection{Cost accounting}
-Frontier cost is billed usage times dated list prices: \$10 per million input tokens and \$50 per million output tokens for both providers, where output includes all reasoning or thinking tokens (we verified that neither provider double-reports reasoning).
-A batch view at half these prices is reported as a derived figure; we did not run batch jobs, since at measured per-item costs the discount changes no conclusion.
-JEV-9B's cost is GPU time: the pod's hourly price multiplied by measured wall-clock.
-For System~1 we report per-call cost from sequential latency, which overstates cost under batching; for System~2, whose requests were batched up to 112 at a time, we report pod-hours over the panel's run window.
-As context only, we also price System~1 inputs at official Jev's \$0.042 per million input tokens; no official-Jev bill exists in this study.
+\subsection{Execution, fairness and cost accounting}
+All clients, scorers and analysis ran on one RunPod pod (NVIDIA A40, 48\,GB, \$0.59/h) that also served JEV-9B with vLLM~0.31.0~\citep{vllm}.
+Provider order was randomised per item; SDK retries were disabled and the runner retried at most once, only on a transport failure or HTTP 408/409/429/5xx, never because of an answer.
+Responses are cached under a hash of task content, model, version, effort, schema and protocol, so no item is billed twice and no answer is chosen among repeats; every paid request reserves its configured maximum cost in an append-only ledger before dispatch.
+Frontier cost is billed usage at dated list prices (\$10/\$50 per million input/output tokens for both providers; output includes reasoning tokens, which neither provider double-reports); the judge track used each provider's batch API at half price.
+JEV-9B's cost is GPU time: System~1 at sequential per-call wall-clock, System~2 at all pod time spanning its runs divided by its items (an upper estimate, since the GPU served other work concurrently).
 
 \subsection{Statistics}
 \label{sec:stats}
 Let $\Delta=\mathrm{acc}(\text{JEV-9B})-\mathrm{acc}(F)$ on a panel, for frontier $F$.
 When each cluster contributes one row we use Newcombe's hybrid score interval for paired proportions with continuity-corrected $\phi$~\citep{newcombe1998}; otherwise a percentile cluster bootstrap over the panel's independent units ($B=10{,}000$).
 In 300-replicate simulations matching our panel sizes (40--204 clusters, cluster sizes 1 and 6) these procedures covered at 0.94--0.96 for a nominal 0.95.
-The primary family for H2 has four comparisons (FOLIO and ANLI, two frontiers), Bonferroni-adjusted to $\alpha=0.0125$; the secondary family (JudgeBench gpt, JudgeBench claude, Banking77-16, two frontiers) is adjusted separately to $\alpha=0.05/6$.
+The primary family for H2 has four comparisons (FOLIO and ANLI, two frontiers), Bonferroni-adjusted to $\alpha=0.0125$; the secondary family (partial JudgeBench, two frontiers) is adjusted to $\alpha=0.05/2$, the judge track (RewardBench, HaluEval-QA) to $\alpha=0.05/4$, and the harness track (six panels, two frontiers) to $\alpha=0.05/12$. Families were frozen before outcomes and shrunk only by the declared scope reductions (Appendix~\ref{app:prereg}).
 The H1 family has six difference-in-differences (two frontiers, depth 5 vs.\ 1, depth 3 vs.\ 1, eight vs.\ zero distractors), adjusted to $\alpha=0.05/6$ and bootstrapped over the 48 graph seeds.
 
 The deployment conclusion for a panel and frontier follows a frozen rule with a noninferiority margin of two accuracy points:
@@ -34,9 +25,7 @@ A non-significant difference is never read as equivalence, and a comparison with
 
 \subsection{Routing evaluation}
 \label{sec:routing}
-For H3, each policy sends an item either to JEV-9B System~1 or to one frontier.
-The \emph{feature rule} fits two $L_2$-regularised logistic regressions---one predicting JEV-9B correctness, one predicting frontier correctness---on seven pre-call features (log length, number of choices, number of sentences, counts of conditional words, negations, quantifiers and digits), and routes to JEV-9B when the predicted accuracy loss is under two points.
-\emph{Feature + confidence} adds JEV-9B's top probability, which is available for a fraction of a cent.
-Baselines: always JEV-9B; always the frontier; length only; task-family lookup (JEV-9B for a family whose training accuracy is within two points of the frontier's; unseen families go to the frontier); a confidence gate whose threshold is the lowest that keeps training accuracy within two points of always-frontier; and the oracle, an unattainable bound.
-Rules are fit on all but one family and evaluated on the held-out family (leave-one-family-out over FOLIO, ANLI, JudgeBench, Banking77-16 and the controlled panel), and separately fit on everything except the unseen controlled template and evaluated on it.
-Each policy is scored by accuracy and total cost, and the comparison of interest is whether a rule reaches the always-frontier accuracy band at lower cost.
+For H3, each policy sends an item to JEV-9B System~1 or to one frontier.
+The \emph{feature rule} fits two $L_2$-regularised logistic regressions (predicting JEV-9B and frontier correctness) on seven pre-call surface features and routes to JEV-9B when the predicted loss is under two points; \emph{feature + confidence} adds JEV-9B's top probability.
+Baselines are always-JEV-9B, always-frontier, length only, task-family lookup, a JEV-9B confidence gate whose threshold keeps training accuracy within two points of always-frontier, and the unattainable oracle.
+Rules are fit on all but one family and scored on the held-out one (leave-one-family-out over FOLIO, ANLI, the controlled panel, JudgeBench, RewardBench and HaluEval-QA), and separately on the unseen controlled template.

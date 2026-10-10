@@ -1,0 +1,9 @@
+jev-judge / jev-boundary-study
+Copyright 2026 Arghya Mukherjee
+
+This product is original software written for this study. It uses, but does not include:
+- autotrust/JEV-9B (Apache-2.0), a community distillation of TypeSafe Jev 1.13, not affiliated with TypeSafe AI.
+  The client-side decoding (head bias + per-kind temperature) follows that model card's documented interface.
+- Benchmark data downloaded at pinned revisions and never redistributed: FOLIO (CC-BY-SA-4.0), ANLI (CC-BY-NC-4.0),
+  JudgeBench (MIT), RewardBench (ODC-BY), HaluEval (Apache-2.0), ProofWriter (CC-BY-4.0), Banking77 (CC-BY-4.0).
+- vLLM, the OpenAI and Anthropic SDKs, FastAPI, NumPy, SciPy, pandas and matplotlib under their own licences.

@@ -1,0 +1,38 @@
+\section*{NeurIPS Paper Checklist}
+\addcontentsline{toc}{section}{NeurIPS Paper Checklist}
+\small
+
+\begin{enumerate}[leftmargin=1.4em,itemsep=3pt]
+\item \textbf{Claims.} Do the main claims in the abstract and introduction accurately reflect the paper's contributions and scope?
+\textbf{Yes.} Every claim names JEV-9B (not official Jev), the two frontier configurations and the panels on which it was measured; the failed depth hypothesis and the student--teacher gap are stated in the abstract (Sections~\ref{sec:controlled-results},~\ref{sec:bridge}).
+
+\item \textbf{Limitations.} \textbf{Yes.} Section~\ref{sec:threats} (threats to validity) and the Limitations subsection.
+
+\item \textbf{Theory, assumptions and proofs.} \textbf{NA.} The paper makes no theoretical claims; the decision rule is established decision analysis.
+
+\item \textbf{Experimental result reproducibility.} \textbf{Yes.} Exact model revisions, API parameters, prompts and wrappers (Appendix~\ref{app:prompts}), dataset commits and SHA-256 hashes, seeds, and the full pipeline (Appendix~\ref{app:repro}).
+
+\item \textbf{Open access to data and code.} \textbf{Yes.} Code, preregistration, controlled panels, item-level predictions and manifests are public; licensed benchmark text is rebuilt from pinned sources rather than redistributed.
+
+\item \textbf{Experimental setting and details.} \textbf{Yes.} Sections~\ref{sec:design}--\ref{sec:protocol}; no model was trained or tuned, and the only free parameter of the harness (threshold 0.90) was fixed a priori.
+
+\item \textbf{Experiment statistical significance.} \textbf{Yes.} Paired Newcombe score intervals or seed/question-clustered bootstrap intervals, Bonferroni-adjusted within preregistered families, with simulated coverage reported (Section~\ref{sec:stats}).
+
+\item \textbf{Experiments compute resources.} \textbf{Yes.} One NVIDIA A40 (48\,GB) rented on RunPod at \$0.59/h for all serving, clients and analysis; API spend \$\ApiTotal{} in total; per-panel costs in Table~\ref{tab:main} and Appendix Table~\ref{tab:ledger}.
+
+\item \textbf{Code of ethics.} \textbf{Yes.} The research uses public benchmarks and public models; no human subjects or personal data.
+
+\item \textbf{Broader impacts.} \textbf{Yes.} Cheaper automated evaluation can widen access to careful model testing; it can also encourage over-reliance on a judge that, as shown here, fails on reasoning-heavy correctness judgements. We therefore release the tool with confidence-gated escalation and a protocol for validating it on the user's own labelled data, and state where it should not be used.
+
+\item \textbf{Safeguards.} \textbf{NA.} No high-risk model or dataset is released; the judging API wraps an existing open model.
+
+\item \textbf{Licences for existing assets.} \textbf{Yes.} JEV-9B (Apache-2.0), FOLIO (CC-BY-SA-4.0), ANLI (CC-BY-NC-4.0), JudgeBench (MIT), RewardBench (ODC-BY), HaluEval (Apache-2.0), ProofWriter (CC-BY-4.0), Banking77 (CC-BY-4.0); all cited, none redistributed.
+
+\item \textbf{New assets.} \textbf{Yes.} The controlled dependency panel, generator and reference scorers, the JEV-H harness and the judging API are documented in the repository under Apache-2.0.
+
+\item \textbf{Crowdsourcing and human subjects.} \textbf{NA.}
+
+\item \textbf{IRB approvals.} \textbf{NA.}
+
+\item \textbf{Declaration of LLM usage.} \textbf{Yes.} The study evaluates LLMs as its subject. An AI coding assistant was used to implement the software and draft the manuscript under the author's direction; all design decisions, preregistration and reported numbers are traceable to the committed code and data.
+\end{enumerate}

@@ -1,0 +1,17 @@
+\begin{table}[t]
+\centering\small
+\caption{Paired controls at $d{=}3$, $c{=}8$ (48 seeds, \%). Changing: one verified edit flips the gold label. Preserving: renamed entities and reordered premises, same label. ``Changed'' = answer differs from the base answer; ``Both'' = correct on base and edited item; ``Invariant'' = same answer as base.}
+\label{tab:controls}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+& Base & \multicolumn{3}{c}{Decision-changing} & \multicolumn{2}{c}{Decision-preserving} \\
+System & acc. & acc. & changed & both & acc. & invariant \\
+\midrule
+JEV-9B S1 & 40 & 58 & 48 & 23 & 31 & 58 \\
+JEV-9B S2 & 100 & 100 & 100 & 100 & 100 & 100 \\
+JEV-H harness & 98 & 98 & 98 & 96 & 98 & 96 \\
+Astra (high) & 100 & 100 & 100 & 100 & 100 & 100 \\
+Fable (high) & 100 & 100 & 100 & 100 & 100 & 100 \\
+\bottomrule
+\end{tabular}
+\end{table}

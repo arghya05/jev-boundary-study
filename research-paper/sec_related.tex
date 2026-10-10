@@ -10,16 +10,12 @@ Further work examines adversarial robustness and batching~\citep{jevadvbench2026
 General Decision Models~\citep{gdm2026} compare 25 decision-model configurations with non-thinking frontier models and conclude that reasoning-intensive tasks are ``not well captured by single-pass distillation''; LLM-as-Jev~\citep{llmasjev2026} shows that general LLMs can be read out as Jev-style decision models and that short training inputs hurt long-input accuracy; Jeeves-9B~\citep{jeeves2026} reports that a decision model which reasons before choosing gains about 3.6 points.
 
 \paragraph{Community distillations.}
-Jev's weights are closed.
-Several open students distil its output distributions; we use autotrust/JEV-9B~\citep{jev9bcard}, a Qwen3.5-9B backbone with a 40.2M-parameter LoRA and a 24-slot decision head trained by KL on Jev~1.13 distributions.
-Its card reports mean KL 0.019 to the teacher in distribution and 0.234 on unseen task families, top-1 choice agreement of 90.2\%, and accuracy 90--97\% of the teacher's on an independent gold benchmark; it also states that the student ``mirrors the teacher's mistakes'' on multi-hop reasoning.
-Open-Jev~\citep{openjev} and others re-implement Jev-style models independently.
+Jev's weights are closed; open students distil its output distributions.
+We use autotrust/JEV-9B~\citep{jev9bcard} (Qwen3.5-9B, a 40.2M-parameter LoRA and a 24-slot decision head), whose card reports KL 0.019 to the teacher in distribution and 0.234 out of distribution, and that it ``mirrors the teacher's mistakes'' on multi-hop reasoning; Open-Jev~\citep{openjev} re-implements Jev-style models independently.
 
 \paragraph{Depth-controlled deduction.}
-Controlling proof depth is not new.
-RuleTaker and ProofWriter~\citep{ruletaker2020,proofwriter2021}, PrOntoQA and its out-of-distribution distractor extension~\citep{prontoqa2023,prontoqaood2023}, LogicBench~\citep{logicbench2024}, Multi-LogiEval~\citep{multilogieval2024}, QMFOL~\citep{qmfol2026} and ProloNg~\citep{prolong2026} all stratify deduction by depth, several with distractors, and the last two test reasoning-enabled frontier models.
-Closest to us, Hard-Decisions~\citep{harddecisions2026}, released the day before our review, evaluates official Jev and other decision models on 3{,}600 ProofWriter items by proof depth: in the open-world task Jev falls from 97.7\% at depth 0 to 71.9\% at depth 4 and 81.0\% at depth 5, while GPT-6 Luna with reasoning \emph{off} falls from 93.3\% to 46.0\%.
-Its authors note that text length, rule and fact counts, negation and paraphrase covary with depth there.
+Depth control is not new: RuleTaker, ProofWriter, PrOntoQA and its distractor variant, LogicBench, Multi-LogiEval, QMFOL and ProloNg stratify deduction by depth~\citep{ruletaker2020,proofwriter2021,prontoqa2023,prontoqaood2023,logicbench2024,multilogieval2024,qmfol2026,prolong2026}.
+Closest to us, Hard-Decisions~\citep{harddecisions2026} evaluates official Jev on 3{,}600 ProofWriter items: open-world accuracy falls from 97.7\% at depth 0 to 81.0\% at depth 5, against 93.3\% to 46.0\% for GPT-6 Luna with reasoning \emph{off}; length and rule counts covary with depth there.
 
 \paragraph{Routing and cascades.}
 Learned routing~\citep{routellm2024,routereval2025,routerarena2025,rerouting2025}, cost-aware cascades~\citep{frugalgpt2023,tokencascade2024} and confidence tuning~\citep{gatekeeper2025} are established, and confidence-based deferral is a notoriously strong baseline for classification cascades.
@@ -31,20 +27,20 @@ We claim no novel generator, router or theorem.
 Our candidate addition is narrow: a \emph{paired} comparison of a one-forward-pass decision model against \emph{reasoning-enabled} frontier models, together with a same-weights reasoning arm, under \emph{jointly} matched depth, length, rule count and distractors, with seed-clustered uncertainty; and a held-out test of whether pre-call features can predict when the decision model suffices.
 
 \begin{table}[t]
-\centering\small
-\caption{Research position. ``Ahead'' lists what the cited work provides that this study does not; ``Here'' lists what this study adds or controls. \checkmark: present; ---: absent; $\sim$: partial.}
+\centering\footnotesize
+\caption{Research position. DM: decision model; RF: reasoning-enabled frontier comparator; LD: depth varied with length, rule count and distractors held fixed; SW: same-weights reasoning arm. \checkmark{} present, $\sim$ partial, --- absent.}
 \label{tab:position}
 \begin{tabularx}{\linewidth}{@{}lccccX@{}}
 \toprule
-Work & \makecell{Decision\\model} & \makecell{Reasoning\\frontier} & \makecell{Depth ctrl.\\(len.\ matched)} & \makecell{Same-weights\\reasoning arm} & Ahead / Here \\
+Work & DM & RF & LD & SW & What it has that we lack / what we add \\
 \midrule
-Jev benchmark~\citep{jevbench2026} & \checkmark & --- & --- & --- & Ahead: breadth, multilingual. Here: depth control, reasoning frontiers. \\
-JEV-as-a-Judge~\citep{jevjudge2026} & \checkmark & low effort & --- & --- & Ahead: judging protocols, escalation. Here: high effort, depth. \\
-Hard-Decisions~\citep{harddecisions2026} & \checkmark{} (official) & off & $\sim$ (depth only) & --- & Ahead: official Jev, 3{,}600 items. Here: matched length, reasoning frontiers. \\
-General Decision Models~\citep{gdm2026} & \checkmark & off & --- & $\sim$ & Ahead: 25 configs. Here: controlled depth. \\
-QMFOL / ProloNg~\citep{qmfol2026,prolong2026} & --- & \checkmark & \checkmark / $\sim$ & --- & Ahead: deeper chains. Here: decision model. \\
-RouteLLM, FrugalGPT~\citep{routellm2024,frugalgpt2023} & --- & \checkmark & --- & --- & Ahead: trained routers. Here: decision-model gate. \\
-\textbf{This study} & JEV-9B & high effort & \checkmark & \checkmark & Student, not official Jev. \\
+Jev benchmark~\citep{jevbench2026} & \checkmark & --- & --- & --- & breadth, multilingual / depth control, reasoning frontiers \\
+JEV-as-a-Judge~\citep{jevjudge2026} & \checkmark & low & --- & --- & judging protocols / high effort, depth, harness \\
+Hard-Decisions~\citep{harddecisions2026} & \checkmark & off & $\sim$ & --- & official Jev, 3{,}600 items / matched length, frontiers \\
+General Decision Models~\citep{gdm2026} & \checkmark & off & --- & $\sim$ & 25 configurations / controlled depth \\
+QMFOL, ProloNg~\citep{qmfol2026,prolong2026} & --- & \checkmark & $\sim$ & --- & deeper chains / a decision model \\
+RouteLLM, FrugalGPT~\citep{routellm2024,frugalgpt2023} & --- & \checkmark & --- & --- & trained routers / decision-model gate \\
+\textbf{This study} & JEV-9B & high & \checkmark & \checkmark & --- / a student, not official Jev \\
 \bottomrule
 \end{tabularx}
 \end{table}

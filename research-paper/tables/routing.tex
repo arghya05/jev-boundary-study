@@ -1,0 +1,29 @@
+\begin{table*}[t]
+\centering\small
+\caption{Selection rules (H3). Leave-one-family-out over five families: mean held-out accuracy (\%), number of folds within 2 points of always-frontier, share of items sent to JEV-9B (\%), and total cost relative to always-frontier. Unseen template: rules fit on everything except controlled template T2, evaluated on T2 items.}
+\label{tab:routing}
+\begin{tabular}{@{}llrrrrrr@{}}
+\toprule
+& & \multicolumn{4}{c}{Leave one family out} & \multicolumn{2}{c}{Unseen template T2} \\
+Frontier & Policy & Acc. & Within 2 pt & To JEV & Cost ratio & Acc. & To JEV \\
+\midrule
+Astra & Always JEV-9B & 71.5 & 0/6 & 100 & 0.01 & 49.3 & 100 \\
+ & Always frontier & 90.1 & 6/6 & 0 & 1.00 & 100.0 & 0 \\
+ & Length only & 90.1 & 6/6 & 1 & 1.00 & 100.0 & 0 \\
+ & Family lookup & 90.1 & 6/6 & 0 & 1.00 & 100.0 & 0 \\
+ & JEV-9B confidence gate & 87.6 & 4/6 & 45 & 0.67 & 95.1 & 26 \\
+ & Feature rule & 87.7 & 4/6 & 19 & 0.84 & 100.0 & 0 \\
+ & Feature rule + conf. & 89.3 & 4/6 & 17 & 0.88 & 100.0 & 0 \\
+ & Oracle (unattainable) & 93.4 & 6/6 & 78 & 0.25 & 100.0 & 49 \\
+\midrule
+Fable & Always JEV-9B & 71.5 & 1/6 & 100 & 0.01 & 49.3 & 100 \\
+ & Always frontier & 90.9 & 6/6 & 0 & 1.00 & 100.0 & 0 \\
+ & Length only & 90.9 & 6/6 & 0 & 1.00 & 100.0 & 0 \\
+ & Family lookup & 90.9 & 6/6 & 0 & 1.00 & 100.0 & 0 \\
+ & JEV-9B confidence gate & 88.5 & 1/6 & 45 & 0.66 & 95.1 & 26 \\
+ & Feature rule & 87.0 & 4/6 & 23 & 0.74 & 100.0 & 0 \\
+ & Feature rule + conf. & 88.6 & 4/6 & 21 & 0.78 & 100.0 & 0 \\
+ & Oracle (unattainable) & 94.3 & 6/6 & 77 & 0.27 & 100.0 & 49 \\
+\bottomrule
+\end{tabular}
+\end{table*}

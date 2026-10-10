@@ -1,0 +1,17 @@
+\begin{table}[t]
+\centering\small
+\caption{Accuracy (\%) and, in parentheses, USD per 1{,}000 decisions on every panel (full table with intervals, failures and token counts: Appendix Table~\ref{tab:main}). JEV-9B S2 is run on every item only where it is a confirmatory arm (A6). $^\dagger$349 of 620 rows (A5).}
+\label{tab:maincompact}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+System & FOLIO & ANLI r3 & Controlled & JudgeBench$^\dagger$ & RewardBench & HaluEval-QA \\
+\midrule
+JEV-9B S1 & 69.6 \scriptsize(0.041) & 64.2 \scriptsize(0.045) & 55.9 \scriptsize(0.037) & 68.2 \scriptsize(0.153) & 87.0 \scriptsize(0.170) & 82.7 \scriptsize(0.096) \\
+JEV-9B S2 & 85.8 \scriptsize(0.609) & -- & 100.0 \scriptsize(0.609) & -- & -- & -- \\
+JEV-H harness & 84.3 \scriptsize(0.483) & 74.6 \scriptsize(0.623) & 96.9 \scriptsize(0.572) & 88.2 \scriptsize(1.19) & 94.4 \scriptsize(0.654) & 87.7 \scriptsize(0.424) \\
+Astra (high) & 86.8 \scriptsize(8.97) & 74.9 \scriptsize(7.00) & 100.0 \scriptsize(5.65) & 94.5 \scriptsize(22.01) & 93.8 \scriptsize(4.01) & 90.6 \scriptsize(2.45) \\
+Fable (high) & 90.2 \scriptsize(11.68) & 77.3 \scriptsize(7.52) & 100.0 \scriptsize(7.87) & 94.2 \scriptsize(42.28) & 90.2 \scriptsize(5.78) & 93.3 \scriptsize(3.64) \\
+\bottomrule
+\end{tabular}}
+\end{table}

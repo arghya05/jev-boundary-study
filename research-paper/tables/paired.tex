@@ -1,0 +1,25 @@
+\begin{table*}[t]
+\centering\small
+\caption{Paired comparisons of JEV-9B System~1 with each frontier (judge track: preregistration A3, $\alpha=0.05/4$). $\Delta$ = JEV-9B minus frontier accuracy (points).
+Intervals are Bonferroni-adjusted within family (primary: $\alpha=0.05/4$; secondary: $\alpha=0.05/6$); cluster bootstrap where clusters repeat, Newcombe paired score interval otherwise.
+Discordant = items only JEV-9B / only the frontier got right. Conclusions follow the frozen rule with a 2-point margin.}
+\label{tab:paired}
+\begin{tabular}{@{}lllrrrcl@{}}
+\toprule
+Family & Panel & Frontier & Clusters & Discordant & $\Delta$ & Adj.\ CI & Conclusion \\
+\midrule
+Primary & FOLIO & Astra (high) & 73 & 8/43 & -17.2 & [-26.6, -7.2] & frontier better \\
+ & FOLIO & Fable (high) & 73 & 3/45 & -20.6 & [-29.0, -12.1] & frontier better \\
+ & ANLI r3 & Astra (high) & 1128 & 96/224 & -10.7 & [-14.1, -7.0] & frontier better \\
+ & ANLI r3 & Fable (high) & 1128 & 94/251 & -13.1 & [-16.7, -9.4] & frontier better \\
+\midrule
+Secondary & JudgeBench (partial) & Astra (high) & 157 & 11/102 & -26.3 & [-32.8, -17.2] & frontier better \\
+ & JudgeBench (partial) & Fable (high) & 157 & 11/101 & -26.0 & [-32.2, -16.5] & frontier better \\
+\midrule
+Judge track & RewardBench & Astra (high) & 492 & 17/44 & -5.4 & [-9.4, -1.6] & inconclusive \\
+ & RewardBench & Fable (high) & 492 & 37/46 & -1.8 & [-6.4, 2.6] & inconclusive \\
+ & HaluEval-QA & Astra (high) & 1000 & 10/89 & -7.9 & [-10.4, -5.5] & frontier better \\
+ & HaluEval-QA & Fable (high) & 1000 & 5/111 & -10.6 & [-13.3, -8.1] & frontier better \\
+\bottomrule
+\end{tabular}
+\end{table*}

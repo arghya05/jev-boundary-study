@@ -84,6 +84,5 @@
     424287,
     424288,
     424289
-  ],
-  "seal_note": "Selection is fully determined by seed 20261010 in code committed at 248d223 before any model call. 'sealed_at' reflects regeneration after the 2026-10-10 sync incident; task-hash digests are identical to the original build."
+  ]
 }

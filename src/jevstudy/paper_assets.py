@@ -10,6 +10,7 @@ from collections import defaultdict
 from pathlib import Path
 
 import matplotlib
+import matplotlib.ticker
 import numpy as np
 import pandas as pd
 
@@ -19,14 +20,16 @@ import matplotlib.pyplot as plt  # noqa: E402
 from . import analysis, router, stats  # noqa: E402
 from .canonical import LETTERS, Task, read_jsonl  # noqa: E402
 
+S2_RATE = 0.0
+S2_FULL_PANELS = {"FOLIO", "Controlled"}
 SYS = ["jev9b-s1", "jev9b-s2", "jev9b-h", "astra-high", "fable-high"]
 LABEL = {"jev9b-s1": "JEV-9B S1", "jev9b-s2": "JEV-9B S2", "jev9b-h": "JEV-H harness", "astra-high": "Astra (high)", "fable-high": "Fable (high)",
          "astra-max": "Astra (max)", "fable-max": "Fable (max)"}
 COLORS = {"jev9b-s1": "#2a6f97", "jev9b-s2": "#61a5c2", "jev9b-h": "#2d6a4f", "astra-high": "#c1121f", "fable-high": "#e09f3e",
           "astra-max": "#780000", "fable-max": "#9c6644"}
+# A5: Banking77-16 dropped; JudgeBench-claude has 3 completed rows and is reported in the text only.
 PANELS = [("final", "folio", "FOLIO"), ("final", "anli", "ANLI r3"), ("controlled_final", "controlled", "Controlled"),
-          ("final_gpt", "judgebench", "JudgeBench-gpt"), ("final_claude", "judgebench", "JudgeBench-claude"),
-          ("final", "banking77", "Banking77-16"), ("judge_track", "rewardbench", "RewardBench"),
+          ("final_gpt", "judgebench", "JudgeBench (partial)"), ("judge_track", "rewardbench", "RewardBench"),
           ("judge_track", "halueval", "HaluEval-QA")]
 PRIMARY = {"FOLIO", "ANLI r3", "Controlled"}
 ALL_PANELS = ["folio_final", "anli_final", "controlled_final", "judgebench_final", "banking_final",
@@ -34,6 +37,15 @@ ALL_PANELS = ["folio_final", "anli_final", "controlled_final", "judgebench_final
 HD_JEV = [0.977, 0.877, 0.848, 0.799, 0.719, 0.810]   # Hard-Decisions v0.1.0, official Jev, OWA, depths 0-5
 HD_LUNA = [0.933, 0.778, 0.604, 0.617, 0.446, 0.460]  # GPT-6 Luna, reasoning effort none
 HD_KEV9 = [0.893, 0.738, 0.584, 0.495, 0.386, 0.412]
+
+
+SHORT_VERDICT = {"frontier materially more accurate": "frontier better", "JEV-9B more accurate": "JEV-9B better",
+                 "JEV-H more accurate": "JEV-H better", "comparable (noninferior) and cheaper": "comparable, cheaper",
+                 "comparable (noninferior), not cheaper": "comparable", "inconclusive (too few independent clusters)": "too few clusters"}
+
+
+def short_verdict(c: str) -> str:
+    return SHORT_VERDICT.get(c, c)
 
 
 def pct(x, d=1):
@@ -86,23 +98,20 @@ def gpu_hours(root: Path) -> dict:
 def main_table(df, out: Path, ghours: dict):
     rows, recs = [], []
     panel_file = {"FOLIO": "folio_final", "ANLI r3": "anli_final", "Controlled": "controlled_final",
-                  "JudgeBench-gpt": "judgebench_final", "JudgeBench-claude": "judgebench_final", "Banking77-16": "banking_final",
+                  "JudgeBench (partial)": "judgebench_final",
                   "RewardBench": "rewardbench", "HaluEval-QA": "halueval"}
     for split, fam, name in PANELS:
         sub = panel_df(df, split, fam)
         n_panel = sub.task_id.nunique()
         for s in SYS:
             g = sub[sub.system == s]
-            if g.empty:
-                continue
+            if g.empty or (s == "jev9b-s2" and name not in S2_FULL_PANELS):
+                continue  # A6: System 2 ran only on escalated items here; no standalone accuracy
             k, n = int(g.correct.sum()), len(g)
             lo, hi = stats.wilson(k, n)
             if s == "jev9b-s2":
-                # pod-hours over the panel's batched run window, spread evenly over the panel file's rows
-                h = ghours.get(panel_file[name], np.nan)
-                rows_in_file = len(df[(df.system == s) & (df.family == fam) & (df.split.str.startswith(split.split("_")[0]))]) \
-                    if not name.startswith("JudgeBench") else len(df[(df.system == s) & (df.family == "judgebench")])
-                usd1k = 1000 * h * 0.59 / max(1, rows_in_file) if h == h else np.nan
+                from .harness import s2_rate_per_item
+                usd1k = 1000 * S2_RATE if S2_RATE else np.nan
             else:
                 usd1k = 1000 * g.cost_usd.mean()
             fails = int((g.status != "ok").sum())
@@ -116,7 +125,7 @@ def main_table(df, out: Path, ghours: dict):
     write(out / "tables" / "main.tex", rf"""\begin{{table*}}[t]
 \centering\small
 \caption{{Accuracy and cost on every panel. Accuracy in \%, 95\% Wilson interval; failures are scored incorrect.
-Cost: USD per 1{{,}}000 decisions at list price (frontiers: billed tokens; JEV-9B S1: sequential GPU seconds; S2: pod-hours over the panel's batched run).
+Cost: USD per 1{{,}}000 decisions at list price (frontiers: billed tokens; JEV-9B S1: sequential GPU seconds; S2: all pod time spanning System-2 runs divided by System-2 items, a conservative upper estimate; JEV-H: two S1 calls plus S2 on escalated items).
 Output tokens include reasoning. Controlled = 288 base items (48 seeds $\times$ 6 conditions).}}
 \label{{tab:main}}
 \begin{{tabular}}{{@{{}}llrrcrrr@{{}}}}
@@ -132,9 +141,36 @@ Panel & System & $n$ & Acc. & 95\% CI & Fail & \$/1k & Out tok. \\
 
 
 # ------------------------------------------------------------------ table: paired comparisons
+def main_compact(main: pd.DataFrame, out: Path):
+    """Body table: systems x panels, accuracy (%) and USD per 1,000 decisions."""
+    names = [p[2] for p in PANELS]
+    rows = []
+    for s_ in SYS:
+        cells = []
+        for n in names:
+            r = main[(main.panel == n) & (main.system == s_)]
+            cells.append("--" if r.empty else f"{pct(r.acc.iloc[0])} \\scriptsize({money(r.usd_per_1k.iloc[0])})")
+        rows.append(f"{LABEL[s_]} & " + " & ".join(cells) + " \\\\")
+    hdr = " & ".join(n.replace(" (partial)", "$^\\dagger$") for n in names)
+    write(out / "tables" / "main_compact.tex", r"""\begin{table}[t]
+\centering\small
+\caption{Accuracy (\%) and, in parentheses, USD per 1{,}000 decisions on every panel (full table with intervals, failures and token counts: Appendix Table~\ref{tab:main}). JEV-9B S2 is run on every item only where it is a confirmatory arm (A6). $^\dagger$349 of 620 rows (A5).}
+\label{tab:maincompact}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+System & """ + hdr + r""" \\
+\midrule
+""" + "\n".join(rows) + r"""
+\bottomrule
+\end{tabular}}
+\end{table}
+""")
+
+
 def paired_table(df, out: Path, main: pd.DataFrame):
     prim = [(s, f, n) for s, f, n in PANELS if n in ("FOLIO", "ANLI r3")]
-    sec = [(s, f, n) for s, f, n in PANELS if n in ("JudgeBench-gpt", "JudgeBench-claude", "Banking77-16")]
+    sec = [(s, f, n) for s, f, n in PANELS if n in ("JudgeBench (partial)",)]
     jt = [(s, f, n) for s, f, n in PANELS if n in ("RewardBench", "HaluEval-QA")]
     recs, rows = [], []
     for fam_list, label in ((prim, "Primary"), (sec, "Secondary"), (jt, "Judge track")):
@@ -156,7 +192,7 @@ def paired_table(df, out: Path, main: pd.DataFrame):
                 recs.append({**res, "panel": name, "frontier": fr, "family_label": label, "conclusion": concl, "m": m})
                 rows.append(f"{label if (name, fr) == (fam_list[0][2], 'astra-high') else ''} & {name} & {LABEL[fr]} & "
                             f"{res['clusters']} & {res['jev_only']}/{res['frontier_only']} & {pct(res['delta'])} & "
-                            f"[{pct(res['lo'])}, {pct(res['hi'])}] & {concl} \\\\")
+                            f"[{pct(res['lo'])}, {pct(res['hi'])}] & {short_verdict(concl)} \\\\")
         rows.append("\\midrule")
     body = "\n".join(rows[:-1])
     write(out / "tables" / "paired.tex", rf"""\begin{{table*}}[t]
@@ -165,13 +201,13 @@ def paired_table(df, out: Path, main: pd.DataFrame):
 Intervals are Bonferroni-adjusted within family (primary: $\alpha=0.05/4$; secondary: $\alpha=0.05/6$); cluster bootstrap where clusters repeat, Newcombe paired score interval otherwise.
 Discordant = items only JEV-9B / only the frontier got right. Conclusions follow the frozen rule with a 2-point margin.}}
 \label{{tab:paired}}
-\begin{{tabularx}}{{\linewidth}}{{@{{}}lllrrrcX@{{}}}}
+\begin{{tabular}}{{@{{}}lllrrrcl@{{}}}}
 \toprule
 Family & Panel & Frontier & Clusters & Discordant & $\Delta$ & Adj.\ CI & Conclusion \\
 \midrule
 {body}
 \bottomrule
-\end{{tabularx}}
+\end{{tabular}}
 \end{{table*}}
 """)
     return recs
@@ -198,22 +234,32 @@ def harness_table(df, out: Path, main: pd.DataFrame):
             cf = main[(main.panel == name) & (main.system == fr)].usd_per_1k
             ch = hm.usd_per_1k
             cheaper = bool(len(ch) and len(cf) and ch.iloc[0] < cf.iloc[0])
-            concl = stats.classify(res, jev_cheaper=cheaper)
+            concl = stats.classify(res, jev_cheaper=cheaper).replace("JEV-9B", "JEV-H")
             recs.append({**res, "panel": name, "frontier": fr, "conclusion": concl, "m": m,
                          "usd1k_h": float(ch.iloc[0]) if len(ch) else None, "usd1k_f": float(cf.iloc[0]) if len(cf) else None})
             rows.append(f"{name if fr == 'astra-high' else ''} & {LABEL[fr]} & {pct(res['acc_jev'])} & {pct(res['acc_frontier'])} & "
-                        f"{pct(res['delta'])} & [{pct(res['lo'])}, {pct(res['hi'])}] & {concl} \\\\")
+                        f"{pct(res['delta'])} & [{pct(res['lo'])}, {pct(res['hi'])}] & {short_verdict(concl)} \\\\")
+    # sensitivity (not preregistered): RewardBench on the pairs Claude Fable answered (its refusals excluded)
+    rb = panel_df(df, "judge_track", "rewardbench")
+    hh, ff = rb[rb.system == "jev9b-h"].set_index("task_id"), rb[rb.system == "fable-high"].set_index("task_id")
+    ids = sorted(set(hh.index) & set(ff[ff.status != "refusal"].index))
+    if ids:
+        res = stats.paired_delta([{"cluster": hh.cluster[i], "x": int(hh.correct[i]), "y": int(ff.correct[i])} for i in ids], alpha=a)
+        recs.append({**res, "panel": "RewardBench (Fable-answered)", "frontier": "fable-high", "conclusion": "sensitivity", "m": m})
+        rows.append("\\addlinespace")
+        rows.append(f"RewardBench, refusals excluded$^\\dagger$ & {LABEL['fable-high']} & {pct(res['acc_jev'])} & {pct(res['acc_frontier'])} & "
+                    f"{pct(res['delta'])} & [{pct(res['lo'])}, {pct(res['hi'])}] & sensitivity only ($n={len(ids)}$) \\\\")
     write(out / "tables" / "harness.tex", r"""\begin{table*}[t]
 \centering\small
-\caption{JEV-H harness (A4: two option orders, threshold 0.90 fixed a priori, escalation to JEV-9B's own System~2) against each frontier. $\Delta$ = JEV-H minus frontier (points); intervals Bonferroni-adjusted over all """ + str(m) + r""" panel $\times$ frontier pairs.}
+\caption{JEV-H harness (A4: two option orders, threshold 0.90 fixed a priori, escalation to JEV-9B's own System~2) against each frontier. $\Delta$ = JEV-H minus frontier (points); intervals Bonferroni-adjusted over all """ + str(m) + r""" panel $\times$ frontier pairs. $^\dagger$Not preregistered: all 25 of Claude Fable's RewardBench refusals are Safety pairs, scored incorrect in the primary row; this row drops them.}
 \label{tab:harness}
-\begin{tabularx}{\linewidth}{@{}llrrrcX@{}}
+\resizebox{\linewidth}{!}{\begin{tabular}{@{}llrrrcl@{}}
 \toprule
 Panel & Frontier & JEV-H & Frontier & $\Delta$ & Adj.\ CI & Conclusion \\
 \midrule
 """ + "\n".join(rows) + r"""
 \bottomrule
-\end{tabularx}
+\end{tabular}}
 \end{table*}
 """)
     return recs
@@ -488,9 +534,9 @@ def length_table(df, out: Path):
 \centering\small
 \caption{Accuracy (\%) on inputs of at most / more than 1{,}024 JEV-9B tokens, the length on which JEV-9B was trained. Only panels with long inputs are shown.}
 \label{tab:length}
-\begin{tabular}{@{}lccccc@{}}
+\begin{tabular}{@{}lcccccc@{}}
 \toprule
-Panel & $n$ short/long & JEV-9B S1 & JEV-9B S2 & Astra & Fable \\
+Panel & $n$ short/long & JEV-9B S1 & JEV-9B S2 & JEV-H & Astra & Fable \\
 \midrule
 """ + "\n".join(rows) + r"""
 \bottomrule
@@ -601,7 +647,7 @@ Depth & $n$ & JEV-9B S1 & 95\% CI & Official Jev & Kev-9B & Luna (off) \\
 # ------------------------------------------------------------------ operating points figure + latency
 def operating_points(main: pd.DataFrame, out: Path):
     names = [p[2] for p in PANELS]
-    fig, axes = plt.subplots(2, 3, figsize=(10, 5.6), sharey=False)
+    fig, axes = plt.subplots(2, 3, figsize=(10, 4.6), sharey=False)
     for ax, name in zip(axes.flat, names):
         m = main[main.panel == name]
         for r in m.itertuples():
@@ -612,14 +658,15 @@ def operating_points(main: pd.DataFrame, out: Path):
             if r.system in ("astra-high", "fable-high"):
                 ax.scatter(max(r.usd_per_1k / 2, 1e-3), r.acc, marker="x", color=COLORS[r.system], s=18)
         ax.set_xscale("log")
+        ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
         ax.set_title(name, fontsize=9)
         ax.set_xlabel("USD per 1,000 decisions (log)", fontsize=7)
         ax.tick_params(labelsize=7)
     axes[0, 0].set_ylabel("accuracy")
     axes[1, 0].set_ylabel("accuracy")
     h, l = axes[0, 0].get_legend_handles_labels()
-    fig.legend(h, l, loc="lower center", ncol=4, fontsize=8)
-    fig.tight_layout(rect=(0, 0.06, 1, 1))
+    fig.legend(h, l, loc="lower center", ncol=5, fontsize=8)
+    fig.tight_layout(rect=(0, 0.07, 1, 1))
     fig.savefig(out / "figures" / "operating_points.pdf")
     plt.close(fig)
 
@@ -739,8 +786,8 @@ def number_macros(out: Path, main: pd.DataFrame, paired: list, harness: list, di
                   rev: list):
     """Every number quoted in the prose, as LaTeX macros, so the text always matches the data."""
     m = {}
-    short = {"FOLIO": "Folio", "ANLI r3": "Anli", "Controlled": "Ctl", "JudgeBench-gpt": "Jbgpt", "JudgeBench-claude": "Jbclaude",
-             "Banking77-16": "Bank", "RewardBench": "Rb", "HaluEval-QA": "Halu"}
+    short = {"FOLIO": "Folio", "ANLI r3": "Anli", "Controlled": "Ctl", "JudgeBench (partial)": "Jbgpt",
+             "RewardBench": "Rb", "HaluEval-QA": "Halu", "RewardBench (Fable-answered)": "RbAns"}
     sysn = {"jev9b-s1": "Sone", "jev9b-s2": "Stwo", "jev9b-h": "Harn", "astra-high": "Astra", "fable-high": "Fable"}
     for r in main.to_dict("records"):
         k = short[r["panel"]] + sysn[r["system"]]
@@ -753,6 +800,10 @@ def number_macros(out: Path, main: pd.DataFrame, paired: list, harness: list, di
         m[f"Lo{k}"] = pct(r["lo"])
         m[f"Hi{k}"] = pct(r["hi"])
     for r in harness:
+        if r["panel"] == "RewardBench (Fable-answered)":
+            m["DeltaHRbFableAnswered"], m["LoHRbFableAnswered"], m["HiHRbFableAnswered"] = pct(r["delta"]), pct(r["lo"]), pct(r["hi"])
+            m["AccHRbFableAnsweredH"], m["AccHRbFableAnsweredF"] = pct(r["acc_jev"]), pct(r["acc_frontier"])
+            continue
         k = "H" + short[r["panel"]] + sysn[r["frontier"]]
         m[f"Delta{k}"], m[f"Lo{k}"], m[f"Hi{k}"] = pct(r["delta"]), pct(r["lo"]), pct(r["hi"])
         m[f"Concl{k}"] = r["conclusion"]
@@ -790,10 +841,153 @@ def number_macros(out: Path, main: pd.DataFrame, paired: list, harness: list, di
         m["HaluLenAuroc"] = f"{judge['halueval_length_auroc']:.3f}"
     for r in deep.to_dict("records"):
         m[f"Deep{sysn.get(r['system'], 'X')}D{'zero one two three four five six seven eight nine'.split()[int(r['m_depth'])].title()}"] = pct(r["mean"])
+    for k in [k for k in m if k.startswith("Delta")]:
+        try:
+            m["Abs" + k] = f"{abs(float(m[k])):.1f}"
+        except ValueError:
+            pass
     m["ApiTotal"] = f"{ledger['api_total_ledger']:.2f}"
     lines = [f"\\newcommand{{{macro_name(k)}}}{{{v}}}" for k, v in sorted(m.items())]
     write(out / "numbers.tex", "% generated by jevstudy.paper_assets -- do not edit\n" + "\n".join(lines) + "\n")
     return m
+
+
+def breakeven_table(main: pd.DataFrame, out: Path):
+    """Expected loss = cost + P(error) x consequence. Break-even consequence c* = extra cost / accuracy gain:
+    pay for the frontier when one error costs more than c*."""
+    rows, recs = [], []
+    for split, fam, name in PANELS:
+        for js in ("jev9b-s1", "jev9b-h"):
+            j = main[(main.panel == name) & (main.system == js)]
+            if j.empty:
+                continue
+            cells = []
+            for fr in ("astra-high", "fable-high"):
+                f = main[(main.panel == name) & (main.system == fr)]
+                if f.empty:
+                    cells.append("--")
+                    continue
+                gain = f.acc.iloc[0] - j.acc.iloc[0]
+                extra = (f.usd_per_1k.iloc[0] - j.usd_per_1k.iloc[0]) / 1000
+                if gain <= 0:
+                    cells.append("never")
+                    c = None
+                else:
+                    c = extra / gain
+                    cells.append(f"\\${c:.3f}" if c < 1 else f"\\${c:.2f}")
+                recs.append({"panel": name, "jev": js, "frontier": fr, "gain": gain, "extra_usd": extra, "breakeven_usd": c})
+            rows.append(f"{name if js == 'jev9b-s1' else ''} & {LABEL[js]} & " + " & ".join(cells) + " \\\\")
+    write(out / "tables" / "breakeven.tex", r"""\begin{table}[t]
+\centering\small
+\caption{Break-even cost of one error. With expected loss $=$ cost per decision $+$ $P(\text{error})\times c$, paying for the frontier instead of the JEV-9B configuration is worth it only when an error costs more than $c^*=\Delta\text{cost}/\Delta\text{accuracy}$. ``never'': the JEV-9B configuration is at least as accurate and cheaper.}
+\label{tab:breakeven}
+\begin{tabular}{@{}llrr@{}}
+\toprule
+Panel & Cheap system & $c^*$ vs.\ Astra & $c^*$ vs.\ Fable \\
+\midrule
+""" + "\n".join(rows) + r"""
+\bottomrule
+\end{tabular}
+\end{table}
+""")
+    return recs
+
+
+def calibration_table(df: pd.DataFrame, out: Path):
+    """Expected calibration error (15 equal-width bins) of JEV-9B System 1's top probability, per family."""
+    j = df[(df.system == "jev9b-s1") & df.conf.notna() & ~df.split.str.endswith("_rev") & (df.split != "bridge")]
+    rows, recs = [], []
+    for fam, g in j.groupby("family"):
+        if fam in ("judge_practice",) or len(g) < 50:
+            continue
+        bins = np.linspace(0, 1, 16)
+        idx = np.clip(np.digitize(g.conf, bins) - 1, 0, 14)
+        ece = sum(abs(g.conf[idx == b].mean() - g.correct[idx == b].mean()) * (idx == b).sum() for b in range(15) if (idx == b).any()) / len(g)
+        over = g.conf.mean() - g.correct.mean()
+        recs.append({"family": fam, "n": len(g), "ece": float(ece), "mean_conf": float(g.conf.mean()), "acc": float(g.correct.mean()), "overconfidence": float(over)})
+        rows.append(f"{fam} & {len(g)} & {pct(g.conf.mean())} & {pct(g.correct.mean())} & {pct(over)} & {ece:.3f} \\\\")
+    write(out / "tables" / "calibration.tex", r"""\begin{table}[t]
+\centering\small
+\caption{Calibration of JEV-9B System~1's top probability by task family: mean confidence, accuracy, their gap (overconfidence, points) and expected calibration error (15 bins).}
+\label{tab:calibration}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Family & $n$ & Mean conf. & Accuracy & Over-conf. & ECE \\
+\midrule
+""" + "\n".join(rows) + r"""
+\bottomrule
+\end{tabular}
+\end{table}
+""")
+    return recs
+
+
+def threshold_sweep(root: Path, df: pd.DataFrame, out: Path):
+    """Exploratory: JEV-H accuracy, escalation share and cost for thresholds <= 0.90 (System 2 exists for all of them)."""
+    from .harness import combine, s2_rate_per_item
+    latest = {}
+    for f in sorted((root / "results" / "raw").glob("*.jsonl")):
+        if f.name.startswith("harness"):
+            continue
+        for r in read_jsonl(f):
+            if r["system"] in ("jev9b-s1", "jev9b-s2") and r.get("mode") != "sync-latency":
+                latest[(r["system"], r["task_id"])] = r
+    gold = df.drop_duplicates("task_id").set_index("task_id").gold
+    c = s2_rate_per_item(root)
+    panels = {"FOLIO": "folio_final", "ANLI r3": "anli_final", "RewardBench": "rewardbench", "HaluEval-QA": "halueval",
+              "JudgeBench (partial)": "judgebench_final"}
+    scope = {"rewardbench": "rewardbench_500.json", "judgebench_final": "judgebench_partial.json"}
+    ths = [0.5, 0.6, 0.7, 0.8, 0.85, 0.9]
+    recs = []
+    fig, ax = plt.subplots(1, 2, figsize=(9.5, 3.3))
+    for name, panel in panels.items():
+        tasks = read_jsonl(root / "data" / "panels" / f"{panel}.tasks.jsonl")
+        if panel in scope:
+            keep = set(json.load(open(root / "manifests" / scope[panel]))["ids"])
+            tasks = [t for t in tasks if t["task_id"] in keep]
+        accs, escs = [], []
+        for th in ths:
+            ok, esc, cost = [], 0, 0.0
+            for t in tasks:
+                res = combine(latest.get(("jev9b-s1", t["task_id"])), latest.get(("jev9b-s1", t["task_id"] + "-rev")),
+                              latest.get(("jev9b-s2", t["task_id"])), len(t["choices"]), c, th)
+                ok.append(int(res["answer_id"] == gold.get(t["task_id"])))
+                esc += res["route"] != "s1"
+                cost += res["cost_usd"]
+            recs.append({"panel": name, "threshold": th, "accuracy": float(np.mean(ok)), "escalated": esc / len(tasks),
+                         "usd_per_1k": 1000 * cost / len(tasks)})
+            accs.append(np.mean(ok)), escs.append(esc / len(tasks))
+        ax[0].plot(ths, accs, "o-", ms=3, label=name)
+        ax[1].plot(escs, accs, "o-", ms=3, label=name)
+    ax[0].set_xlabel("escalation threshold")
+    ax[0].set_ylabel("JEV-H accuracy")
+    ax[1].set_xlabel("share of items escalated to System 2")
+    ax[0].axvline(0.9, ls=":", color="grey")
+    ax[1].legend(fontsize=7)
+    fig.tight_layout()
+    fig.savefig(out / "figures" / "threshold.pdf")
+    plt.close(fig)
+    return recs
+
+
+def error_examples(root: Path, df: pd.DataFrame, tasks: dict, out: Path, k: int = 3):
+    """Appendix: controlled items JEV-9B S1 gets wrong and every reasoning system gets right (generated text only)."""
+    base = df[(df.split == "controlled_final") & (df.m_condition == "base")]
+    piv = base.pivot_table(index="task_id", columns="system", values="correct", aggfunc="first")
+    ans = base[base.system == "jev9b-s1"].set_index("task_id")
+    cand = piv[(piv["jev9b-s1"] == 0) & (piv.get("astra-high", 1) == 1) & (piv.get("fable-high", 1) == 1)].index
+    rng = np.random.default_rng(7)
+    out_rows = []
+    for gl in ("Unknown", "True", "False"):
+        ids = [i for i in cand if ans.gold_label[i] == gl]
+        for tid in sorted(rng.choice(ids, size=min(1, len(ids)), replace=False)) if ids else []:
+            t = tasks[tid]
+            ev = t.evidence.replace("Facts and rules:\n", "")
+            letter = ans.answer[tid]
+            pred = t.choices["ABC".index(letter)] if isinstance(letter, str) else "--"
+            out_rows.append(rf"""\paragraph{{{tid} (depth {t.meta['depth']}, {t.meta['irrelevant']} irrelevant facts).}} Gold: \textbf{{{gl}}}; JEV-9B~S1: \textbf{{{pred}}} (confidence {pct(base[(base.system == 'jev9b-s1') & (base.task_id == tid)].conf.iloc[0])}\%); Astra, Fable and System~2: correct.
+\begin{{quote}}\footnotesize """ + " \\\\ ".join(l.strip() for l in ev.splitlines()) + r" \\[2pt] " + t.question + r"""\end{quote}""")
+    write(out / "tables" / "examples.tex", "\n".join(out_rows) + "\n")
 
 
 def cost_summary(root: Path, df: pd.DataFrame) -> dict:
@@ -816,7 +1010,12 @@ def main():
     df, lat, tasks = load(root)
     df.to_csv(root / "results" / "final_item_level.csv", index=False)
     gh = gpu_hours(root)
+    global S2_RATE
+    from .harness import s2_rate_per_item
+    S2_RATE = s2_rate_per_item(root)
+    print("S2 conservative USD/item", S2_RATE)
     main_df = main_table(df, out, gh)
+    main_compact(main_df, out)
     paired = paired_table(df, out, main_df)
     did, ctrl, cells = controlled_tables(df, out)
     controlled_figure(df, out)
@@ -833,6 +1032,11 @@ def main():
     confidence_figure(df, out)
     deep = df[df.split == "controlled_deep"].groupby(["system", "m_depth"]).correct.agg(["mean", "count"]).reset_index()
     number_macros(out, main_df, paired, harness, did, ctrl, bridge, routing, latency, ledger, harness_routes(root), judge, deep, rev)
+    be = breakeven_table(main_df, out)
+    cal = calibration_table(df, out)
+    sweep = threshold_sweep(root, df, out)
+    error_examples(root, df, tasks, out)
+    analysis.write_json({"breakeven": be, "calibration": cal, "threshold_sweep": sweep}, root / "results" / "extra_analyses.json")
     summary = {"main": main_df.to_dict("records"), "paired": paired, "did": did, "controls": ctrl,
                "reversal": rev, "effort": eff, "length": length, "routing": routing, "routing_detail": routing_detail,
                "bridge": bridge, "latency": latency, "deep": deep.to_dict("records"), "gpu_hours": gh,
